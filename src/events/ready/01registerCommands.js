@@ -1,7 +1,7 @@
-const { testServer } = require('../../../config.json');
-const areCommandsDifferent = require('../../utils/areCommandsDifferent');
-const getApplicationCommands = require('../../utils/getApplicationCommands');
-const getLocalCommands = require('../../utils/getLocalCommands');
+const { testServer } = require("../../../config.json");
+const areCommandsDifferent = require("../../utils/areCommandsDifferent");
+const getApplicationCommands = require("../../utils/getApplicationCommands");
+const getLocalCommands = require("../../utils/getLocalCommands");
 
 module.exports = async (client) => {
   try {
@@ -46,11 +46,10 @@ module.exports = async (client) => {
           description,
           options,
         });
-
         console.log(`👍 Registered command "${name}."`);
       }
     }
   } catch (error) {
-    console.log(`There was an error: ${error}`);
+    console.log(`There was an error 01registerCommands.js: ${error}`);
   }
 };
