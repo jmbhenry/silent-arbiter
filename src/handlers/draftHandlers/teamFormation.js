@@ -15,7 +15,6 @@ const DRAFT_ORDER = [0, 1, 1, 0, 0, 1];
  * @param {Draft} draft
  */
 module.exports = async (channel, draft) => {
-  draft.status = "teamFormation";
   const message = await channel.send({ content: "Loading..." });
 
   //Selecting captains
@@ -38,11 +37,17 @@ module.exports = async (channel, draft) => {
       picker = { captain: draft.blueCaptain, team: draft.blueTeam };
     }
 
+
+
+    let rows = getPlayerButtonsRows(draft.players);
+    rows.push(adminRow);
+
     await message.edit({
       content: `${draft.redCaptain.username} and ${draft.blueCaptain.username} are the team captains.`,
       embeds: [getTeamEmbed(draft.redTeam, draft.blueTeam, picker)],
-      components: getPlayerButtonsRows(draft.players),
+      components: rows,
     });
+
     const buttonClicked = await message
       .awaitMessageComponent({
         time: 300000,
@@ -76,10 +81,12 @@ module.exports = async (channel, draft) => {
   }
 
   await message.edit({
-    content: `Teams have been picked! Head to draftmancer to draft now.`,
+    content: `Teams have been picked!\nHead to draftmancer to draft now.`,
     embeds: [getTeamEmbed(draft.redTeam, draft.blueTeam)],
     components: [],
   });
+
+  draft.status = "pairings";
 
   return;
 };
@@ -107,8 +114,6 @@ function getPlayerButtonsRows(players) {
       );
     buttonCounter++;
   }
-  console.log(`playerButtonsRows length: ${playerButtonsRows.length}`);
-  console.log(`playerButtonsRows: ${playerButtonsRows}`);
   return playerButtonsRows;
 }
 

@@ -1,5 +1,6 @@
 module.exports = class Draft {
   status;
+  leader;
   players;
   redCaptain;
   redTeam;

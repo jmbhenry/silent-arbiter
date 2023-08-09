@@ -5,6 +5,7 @@ const {
   EmbedBuilder,
   ButtonBuilder,
 } = require("discord.js");
+const buttonPermissionCheck = require("../../utils/buttonPermissionCheck.js");
 const Draft = require("../../models/draftClass.js");
 
 const NUMBER_OF_ROUNDS = 3;
@@ -14,7 +15,6 @@ const NUMBER_OF_ROUNDS = 3;
  * @param {Draft} draft
  */
 module.exports = async (channel, draft) => {
-  draft.status = "pairings";
   const revealPairingsRow = new ActionRowBuilder().addComponents(
     new ButtonBuilder()
       .setCustomId("reveal")
@@ -23,7 +23,7 @@ module.exports = async (channel, draft) => {
   );
 
   const message = await channel.send({
-    content: "Play your matches!",
+    content: "Click on the button once the draft is over",
     components: [revealPairingsRow],
   });
 
@@ -56,26 +56,36 @@ module.exports = async (channel, draft) => {
       .setLabel("Finish Draft")
       .setStyle(ButtonStyle.Success)
   );
-  console.log("Step 3");
 
   //Wait for the reveal pairings button to be clicked
-  const buttonClicked = await message.awaitMessageComponent();
-  if (buttonClicked.customId === "reveal") {
-    await buttonClicked.update({
-      embeds: [pairingsEmbed],
-      components: [finishDraftRow],
-    });
+  let pairingsHidden = true;
+  while(pairingsHidden) {
+    const buttonClicked = await message.awaitMessageComponent();
+    console.log(`${buttonClicked.user.username} clicked on the reveal button`)
+    if (buttonClicked.customId === "reveal") {
+        if(buttonPermissionCheck(buttonClicked, draft)) {
+        await buttonClicked.update({
+          content: `Play your matches! \nPairings were revealed by ${buttonClicked.user.username} at ${new Date()}`,
+          embeds: [pairingsEmbed],
+          components: [finishDraftRow],
+        });
+        pairingsHidden = false;
+      }
+    }
   }
 
   //Wait for the finish draft button to be clicked
-  const buttonClicked2 = await message.awaitMessageComponent();
-  if (buttonClicked2.customId === "finish") {
-    await buttonClicked2.update({
-      content: "The draft is over",
-      components: [],
-    });
+  while(draft.status === "pairings") {
+    const buttonClicked2 = await message.awaitMessageComponent();
+    if (buttonClicked2.customId === "finish") {
+      if(buttonPermissionCheck(buttonClicked2, draft)) {
+        await buttonClicked2.update({
+          content: "The draft is over",
+          components: [],
+        });
+        draft.status = "finished";
+      }
+    }
   }
-  draft.status = "finished";
-  console.log(`draft status : ${draft.status}`);
   return;
 };
