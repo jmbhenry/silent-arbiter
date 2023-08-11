@@ -13,7 +13,7 @@ module.exports = {
    * @param {Client} client
    * @param {ChatInputCommandInteraction} interaction
    */
-  callback: async (client, interaction) => {
+  callback: async (interaction) => {
     console.log(`Draft command called by ${interaction.user.username} in ${interaction.channel.name}`)
     if(guildEnv(interaction.guildId).DRAFT_CHANNELS.findIndex((c) => c == interaction.channelId) === -1) {
       interaction.reply({

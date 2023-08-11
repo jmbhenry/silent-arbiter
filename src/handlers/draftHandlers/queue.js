@@ -7,7 +7,7 @@ const {
 const formatPlayerList = require("../../utils/formatPlayerList.js");
 const buttonPermissionCheck = require("../../utils/buttonPermissionCheck.js");
 const Draft = require("../../models/draftClass.js");
-const DRAFT_MIN_SIZE = 2;
+const DRAFT_MIN_SIZE = 6;
 const DRAFT_QUEUE_MAX_SIZE = 8;
 
 const queueButtons = [
@@ -64,12 +64,12 @@ module.exports = async (interaction, draft) => {
   while (draft.status === "queue") {
     const buttonClickedInteraction = await queueMessage
       .awaitMessageComponent({
-        time: 600000,
+        time: 1800000,
       })
       .catch(async (error) => {
+        draft.status = "cancelled";
         await queueMessage.edit({
-          content: "Draft timed out without firing.",
-          embeds: [],
+          content: "Draft timed out without firing after 30min without activity.",
           components: [],
         });
       });
@@ -81,6 +81,7 @@ module.exports = async (interaction, draft) => {
         if (draft.players.length >= DRAFT_QUEUE_MAX_SIZE) {
           buttonClickedInteraction.reply({
             content: "The draft is full, sorry",
+            ephemeral: true,
           });
         } else if (
           draft.players.find(
@@ -89,6 +90,7 @@ module.exports = async (interaction, draft) => {
         ) {
           buttonClickedInteraction.reply({
             content: "You are already in this draft!",
+            ephemeral: true,
           });
         } else {
           draft.players.push(buttonClickedInteraction.user);
@@ -121,6 +123,7 @@ module.exports = async (interaction, draft) => {
         } else {
           buttonClickedInteraction.reply({
             content: "You are not in this draft!",
+            ephemeral: true,
           });
         }
         break;
