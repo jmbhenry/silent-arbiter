@@ -1,4 +1,4 @@
-const { Client, ChatInputCommandInteraction } = require("discord.js");
+const { Client, ChatInputCommandInteraction} = require("discord.js");
 const queue = require("../../handlers/draftHandlers/queue.js");
 const teamFormation = require("../../handlers/draftHandlers/teamFormation.js");
 const pairings = require("../../handlers/draftHandlers/pairings.js");
@@ -13,7 +13,7 @@ module.exports = {
    * @param {Client} client
    * @param {ChatInputCommandInteraction} interaction
    */
-  callback: async (interaction) => {
+  callback: async (client, interaction) => {
     console.log(`Draft command called by ${interaction.user.username} in ${interaction.channel.name}`)
     if(guildEnv(interaction.guildId).DRAFT_CHANNELS.findIndex((c) => c == interaction.channelId) === -1) {
       interaction.reply({

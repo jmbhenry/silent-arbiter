@@ -1,4 +1,4 @@
-const { testServer } = require("../../../config.json");
+require("dotenv").config();
 const areCommandsDifferent = require("../../utils/areCommandsDifferent");
 const getApplicationCommands = require("../../utils/getApplicationCommands");
 const getLocalCommands = require("../../utils/getLocalCommands");
@@ -8,9 +8,8 @@ module.exports = async (client) => {
     const localCommands = getLocalCommands();
     const applicationCommands = await getApplicationCommands(
       client,
-      testServer
+      process.env.GUILD_ID
     );
-
     for (const localCommand of localCommands) {
       const { name, description, options } = localCommand;
 

@@ -37,10 +37,7 @@ module.exports = async (channel, draft) => {
       picker = { captain: draft.blueCaptain, team: draft.blueTeam };
     }
 
-
-
     let rows = getPlayerButtonsRows(draft.players);
-    rows.push(adminRow);
 
     await message.edit({
       content: `${draft.redCaptain.username} and ${draft.blueCaptain.username} are the team captains.`,
@@ -100,7 +97,7 @@ function getPlayerButtonsRows(players) {
     if (!playerButtonsRows.at(rowIndex)) {
       playerButtonsRows.push(new ActionRowBuilder());
     }
-    if (playerButtonsRows.at(rowIndex).length >= 5) {
+    if (playerButtonsRows.at(rowIndex).components.length >= 5) {
       playerButtonsRows.push(new ActionRowBuilder());
       rowIndex++;
     }

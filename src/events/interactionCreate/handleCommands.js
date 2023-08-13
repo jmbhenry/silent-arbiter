@@ -60,6 +60,6 @@ module.exports = async (client, interaction) => {
         await commandObject.callback(client, interaction);
     }
     catch(error){
-        console.log(`There was an error running the command ${error}`);
+        console.log(`handleCommands.js : There was an error running the command ${error}`);
     }
 };
