@@ -13,6 +13,8 @@ module.exports = (guildId) => {
       DRAFT_CHANNELS: [
         "940832475033243688", //#team-draft-room-1
         "1133907357101994104", //#team-draft-room-2
+        "1141401215549313104", //#team-draft-room-3
+        "1141401243537903626", //#team-draft-room-4
         "1138664902186242218", //#elis-turbo-draft
         "1137525063344726188", //#10-ticket-drafts
       ],
