@@ -5,6 +5,7 @@ const {
   EmbedBuilder,
   Channel,
 } = require("discord.js");
+const shuffleArray = require("../../utils/shuffleArray.js");
 const formatPlayerList = require("../../utils/formatPlayerList.js");
 const Draft = require("../../models/draftClass.js");
 
@@ -17,64 +18,82 @@ const DRAFT_ORDER = [0, 1, 1, 0, 0, 1];
 module.exports = async (channel, draft) => {
   const message = await channel.send({ content: "Loading..." });
 
-  //Selecting captains
-  const redCaptainIndex = Math.floor(Math.random() * draft.players.length);
-  draft.redCaptain = draft.players.at(redCaptainIndex);
-  draft.redTeam.push(draft.redCaptain);
-  draft.players.splice(redCaptainIndex, 1);
-  const blueCaptainIndex = Math.floor(Math.random() * draft.players.length);
-  draft.blueCaptain = draft.players.at(blueCaptainIndex);
-  draft.blueTeam.push(draft.blueCaptain);
-  draft.players.splice(blueCaptainIndex, 1);
-
-  let pickCounter = 0;
-  let picker;
-
-  while (draft.players.length > 0) {
-    if (DRAFT_ORDER.at(pickCounter) === 0) {
-      picker = { captain: draft.redCaptain, team: draft.redTeam };
-    } else {
-      picker = { captain: draft.blueCaptain, team: draft.blueTeam };
+  //Random team formation
+  if (draft.teamFormation === "random") {
+    draft.players = shuffleArray(draft.players);
+    let team = "red";
+    for (player of draft.players) {
+      if (team === "red") {
+        draft.redTeam.push(player);
+        team = "blue";
+      } else {
+        draft.blueTeam.push(player);
+        team = "red";
+      }
     }
+    console.log("Team formed randomly.")
+  } else if (draft.teamFormation === "captains") {
+    //Captains team formation
 
-    let rows = getPlayerButtonsRows(draft.players);
+    const redCaptainIndex = Math.floor(Math.random() * draft.players.length);
+    draft.redCaptain = draft.players.at(redCaptainIndex);
+    draft.redTeam.push(draft.redCaptain);
+    draft.players.splice(redCaptainIndex, 1);
+    const blueCaptainIndex = Math.floor(Math.random() * draft.players.length);
+    draft.blueCaptain = draft.players.at(blueCaptainIndex);
+    draft.blueTeam.push(draft.blueCaptain);
+    draft.players.splice(blueCaptainIndex, 1);
 
-    await message.edit({
-      content: `${draft.redCaptain.username} and ${draft.blueCaptain.username} are the team captains.`,
-      embeds: [getTeamEmbed(draft.redTeam, draft.blueTeam, picker)],
-      components: rows,
-    });
+    let pickCounter = 0;
+    let picker;
 
-    const buttonClicked = await message
-      .awaitMessageComponent({
-        time: 300000,
-      })
-      .catch(async (error) => {
-        draft.players = [];
-        await message.edit({
-          content: "Draft was cancelled after timing out.",
-          embeds: [],
-          components: [],
+    while (draft.players.length > 0) {
+      if (DRAFT_ORDER.at(pickCounter) === 0) {
+        picker = { captain: draft.redCaptain, team: draft.redTeam };
+      } else {
+        picker = { captain: draft.blueCaptain, team: draft.blueTeam };
+      }
+
+      let rows = getPlayerButtonsRows(draft.players);
+
+      await message.edit({
+        content: `${draft.redCaptain.username} and ${draft.blueCaptain.username} are the team captains.`,
+        embeds: [getTeamEmbed(draft.redTeam, draft.blueTeam, picker)],
+        components: rows,
+      });
+
+      const buttonClicked = await message
+        .awaitMessageComponent({
+          time: 300000,
+        })
+        .catch(async (error) => {
+          draft.players = [];
+          await message.edit({
+            content: "Draft was cancelled after timing out.",
+            embeds: [],
+            components: [],
+          });
         });
-      });
-    if (!buttonClicked) return;
+      if (!buttonClicked) return;
 
-    if (buttonClicked.member.user != picker.captain) {
-      await buttonClicked.reply({
-        content: "Don't click that!",
-        ephemeral: true,
-      });
-    } else {
-      const pickedPlayer = draft.players
-        .splice(buttonClicked.customId, 1)
-        .at(0);
-      picker.team.push(pickedPlayer);
-      pickCounter++;
-      await buttonClicked.reply({
-        content: `You picked ${pickedPlayer.username}`,
-        ephemeral: true,
-      });
+      if (buttonClicked.member.user != picker.captain) {
+        await buttonClicked.reply({
+          content: "Don't click that!",
+          ephemeral: true,
+        });
+      } else {
+        const pickedPlayer = draft.players
+          .splice(buttonClicked.customId, 1)
+          .at(0);
+        picker.team.push(pickedPlayer);
+        pickCounter++;
+        await buttonClicked.reply({
+          content: `You picked ${pickedPlayer.username}`,
+          ephemeral: true,
+        });
+      }
     }
+    console.log("Team formed with captains.")
   }
 
   await message.edit({

@@ -54,7 +54,7 @@ module.exports = async (interaction, draft) => {
 
   console.log("Sending queue message");
   const queueMessage = await interaction.reply({
-    content: "Starting a draft. Click on the button to join the queue",
+    content: `Starting a draft. Click on the button to join the queue.\nTeam Formation: ${draft.teamFormation}`,
     components: [buttonsRow],
   });
 

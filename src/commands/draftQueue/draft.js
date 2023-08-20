@@ -1,4 +1,4 @@
-const { Client, ChatInputCommandInteraction} = require("discord.js");
+const { Client, ChatInputCommandInteraction, ApplicationCommandOptionType} = require("discord.js");
 const queue = require("../../handlers/draftHandlers/queue.js");
 const teamFormation = require("../../handlers/draftHandlers/teamFormation.js");
 const pairings = require("../../handlers/draftHandlers/pairings.js");
@@ -33,6 +33,9 @@ module.exports = {
       let draft = new Draft();
       draft.leader = interaction.user;
       draft.status = "queue";
+      if(interaction.options.get("team-formation")) {
+        draft.teamFormation = interaction.options.get("team-formation").value;
+      }
       while (true) {
         switch (draft.status) {
           case "cancelled":
@@ -65,4 +68,21 @@ module.exports = {
   },
   name: "draft",
   description: "Start a draft!",
+  options: [
+    {
+      name: "team-formation",
+      description: "Choose how the teams are formed.",
+      type: ApplicationCommandOptionType.String,
+      choices : [
+        {
+          name: "random",
+          value: "random"
+        },
+        {
+          name: "captains",
+          value: "captains"
+        }
+      ]
+    }
+  ]
 };

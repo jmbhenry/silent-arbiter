@@ -1,5 +1,6 @@
 module.exports = class Draft {
   status;
+  teamFormation;
   leader;
   players;
   redCaptain;
@@ -9,6 +10,7 @@ module.exports = class Draft {
 
   constructor() {
     this.status = "queue";
+    this.teamFormation = "random";
     this.players = [];
     this.redTeam = [];
     this.blueTeam = [];
