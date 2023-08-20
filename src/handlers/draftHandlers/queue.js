@@ -64,12 +64,12 @@ module.exports = async (interaction, draft) => {
   while (draft.status === "queue") {
     const buttonClickedInteraction = await queueMessage
       .awaitMessageComponent({
-        time: 1800000,
+        time: 855_000,
       })
       .catch(async (error) => {
         draft.status = "cancelled";
         await queueMessage.edit({
-          content: "Draft timed out without firing after 30min without activity.",
+          content: "Draft timed out without firing after 15min without activity.",
           components: [],
         });
       });
