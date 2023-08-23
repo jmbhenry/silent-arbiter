@@ -53,8 +53,11 @@ module.exports = async (interaction, draft) => {
   const buttonsRow = new ActionRowBuilder().addComponents(buttons);
 
   console.log("Sending queue message");
-  const queueMessage = await interaction.reply({
-    content: `Starting a draft. Click on the button to join the queue.\nTeam Formation: ${draft.teamFormation}`,
+  await interaction.reply({
+    content: "Starting a draft. Click on the button to join the queue.",
+  });
+  const queueMessage = await interaction.channel.send({
+    content: `Team Formation: ${draft.teamFormation}`,
     components: [buttonsRow],
   });
 
@@ -64,12 +67,12 @@ module.exports = async (interaction, draft) => {
   while (draft.status === "queue") {
     const buttonClickedInteraction = await queueMessage
       .awaitMessageComponent({
-        time: 855_000,
+        time: 3_600_000,
       })
       .catch(async (error) => {
         draft.status = "cancelled";
         await queueMessage.edit({
-          content: "Draft timed out without firing after 15min without activity.",
+          content: "Draft timed out without firing after 1h without activity.",
           components: [],
         });
       });
