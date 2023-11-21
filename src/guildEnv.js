@@ -25,6 +25,7 @@ module.exports = (guildId) => {
         "1138664902186242218", //#elis-draft-room
         "1141401215549313104", //#team-draft-cube
         "1137525063344726188", //#team-draft-flashback
+        "1176339019823579296"  //#teamjbro-bang-bang-room
       ],
       ROLE_CHANNEL: "1142675186190127225",
       OPT_IN_ROLES: [
