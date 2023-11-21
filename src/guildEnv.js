@@ -18,13 +18,13 @@ module.exports = (guildId) => {
     return {
       BOT_ADMIN_ROLE: "1138859785954013268",
       DRAFT_CHANNELS: [
-        "940832475033243688", //#team-draft-room-1
-        "1133907357101994104", //#team-draft-room-2
+        
+        "940832475033243688", //#frogs-draft-room
+        "1133907357101994104", //#lsv's-draft-room
+        "1138664902186242218", //#dr-eli-kassis'-draft-room
+        "1141401215549313104", //#captain-sam's-draft-room
+        "1141401243537903626", //#timr0ds-100-ticket-room
         "1141412157964161064", //#scheduled-drafts
-        "1141401243537903626", //#100-ticket-room
-        "1138664902186242218", //#elis-draft-room
-        "1141401215549313104", //#team-draft-cube
-        "1137525063344726188", //#team-draft-flashback
         "1176339019823579296"  //#teamjbro-bang-bang-room
       ],
       ROLE_CHANNEL: "1142675186190127225",
