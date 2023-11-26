@@ -23,6 +23,7 @@ module.exports = (guildId) => {
         "1133907357101994104", //#lsv's-draft-room
         "1138664902186242218", //#dr-eli-kassis'-draft-room
         "1141401215549313104", //#captain-sam's-draft-room
+        "1176339019823579296", //jbros-bang-bang-room
         "1141401243537903626", //#timr0ds-100-ticket-room
         "1141412157964161064", //#scheduled-drafts
       ],
