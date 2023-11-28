@@ -32,6 +32,7 @@ module.exports = (guildId) => {
         { id: "940838664861282395", label: "Cube Drafters 🧊", style: ButtonStyle.Primary, description: "Get notifications for Cube team drafts and 8-person rush when it's available on MTGO." },
         { id: "940838804816789525", label: "Current Set Drafters 🃏", style: ButtonStyle.Secondary, description: "Get notifications for 8-person rush of the current draft set." },
         { id: "1138910426139205693", label: "Turbo Drafters 🚀", style: ButtonStyle.Danger, description: "Get notifications for fast Cube team drafts that only play one round." },
+        { id: "1178857738898518068", label:"Amogus 👩‍🚀", style: ButtonStyle.Success, description: "Get notifications for Among Us games."  },
       ],
     };
   }
