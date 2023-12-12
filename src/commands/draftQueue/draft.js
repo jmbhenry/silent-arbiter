@@ -37,8 +37,8 @@ module.exports = {
           content:
             "There is already an ongoing draft in this channel. Complete or cancel this draft before starting a new one.",
         });
-        interaction.reply({
-          content: ongoingDrafts.get(interaction.channelId),
+        client.channels.cache.get(interaction.channelId).send({
+          content: draft,
         });
         return;
       }
@@ -92,12 +92,8 @@ module.exports = {
           value: "random",
         },
         {
-          name: "choose captains",
-          value: "choose captains",
-        },
-        {
-          name: "random captains",
-          value: "random captains",
+          name: "captains",
+          value: "captains",
         },
       ],
     },
