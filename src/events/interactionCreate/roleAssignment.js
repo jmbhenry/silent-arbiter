@@ -1,5 +1,6 @@
 const {Client, Interaction} = require("discord.js");
 const guildEnv = require("../../guildEnv.js");
+const log = require("../../utils/log.js");
 
 
 /**
@@ -34,6 +35,6 @@ module.exports = async (client, interaction) => {
         await interaction.member.roles.add(role);
         await interaction.editReply({ content: `You are now a ${role}!`});
     } catch (error) {
-        console.log(`Error in roleAssignment: ${error}`);
+        log("roleAssignment.js", `Error in roleAssignment: ${error}`);
     }
 }

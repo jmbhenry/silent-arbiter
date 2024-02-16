@@ -49,7 +49,7 @@ client.on("ready", async (c) => {
       content: "Claim or remove a role below",
     });
   } catch (error) {
-    console.log(error);
+    log("sendRoleMessage.js", error);
   }
   process.exit();
 });

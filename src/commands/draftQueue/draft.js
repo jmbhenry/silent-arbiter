@@ -3,6 +3,7 @@ const queue = require("../../handlers/draftHandlers/queue.js");
 const teamFormation = require("../../handlers/draftHandlers/teamFormation.js");
 const pairings = require("../../handlers/draftHandlers/pairings.js");
 const guildEnv = require("../../guildEnv.js");
+const log = require("../../utils/log.js");
 const Draft = require("../../models/draftClass.js");
 
 
@@ -14,7 +15,7 @@ module.exports = {
    * @param {ChatInputCommandInteraction} interaction
    */
   callback: async (client, interaction) => {
-    console.log(`Draft command called by ${interaction.user.username} in ${interaction.channel.name}`)
+    log("draft.js",`Draft command called by ${interaction.user.username} in ${interaction.channel.name}`);
     if(guildEnv(interaction.guildId).DRAFT_CHANNELS.findIndex((c) => c == interaction.channelId) === -1) {
       interaction.reply({
         content: "You can't use this command in this channel.",
@@ -39,7 +40,7 @@ module.exports = {
       while (true) {
         switch (draft.status) {
           case "cancelled":
-            console.log("Draft cancelled");
+            log("draft.js", "Draft cancelled");
             ongoingDrafts.delete(interaction.channelId);
             return;
           case "queue":
@@ -58,11 +59,11 @@ module.exports = {
             ongoingDrafts.delete(interaction.channelId);
             return;
           default:
-            console.log(`draft.status switch case error: ${draft.status}`);
+            log("draft.js", `draft.status switch case error: ${draft.status}`);
         }
       }
     } catch (error) {
-      console.log("Error with draft command");
+      log("draft.js", "Error with draft command");
       console.error(error);
     }
   },

@@ -8,6 +8,7 @@ const {
 } = require("discord.js");
 const mongoose = require("mongoose");
 const eventHandler = require("./handlers/eventHandler");
+const log = require("./utils/log.js");
 
 const client = new Client({
   intents: [
@@ -23,10 +24,10 @@ const client = new Client({
   try {
     //mongoose.set('strictQuery', false);
     //await mongoose.connect(process.env.MONGODB_URI);
-    //console.log("Connected to DB.")
+    //log("index.js", "Connected to DB.")
     eventHandler(client);
   } catch (error) {
-    console.log(`Error connecting to the database : ${error}`);
+    log("index.js", `Error connecting to the database : ${error}`);
   }
 })();
 

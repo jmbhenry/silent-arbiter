@@ -7,6 +7,7 @@ const {
 } = require("discord.js");
 const shuffleArray = require("../../utils/shuffleArray.js");
 const formatPlayerList = require("../../utils/formatPlayerList.js");
+const log = require("../../utils/log.js");
 const Draft = require("../../models/draftClass.js");
 
 const DRAFT_ORDER = [0, 1, 1, 0, 0, 1];
@@ -31,7 +32,7 @@ module.exports = async (channel, draft) => {
         team = "red";
       }
     }
-    console.log("Team formed randomly.")
+    log("teamFormation.js", "Team formed randomly.")
   } else if (draft.teamFormation === "captains") {
     //Captains team formation
 
@@ -64,7 +65,7 @@ module.exports = async (channel, draft) => {
 
       const buttonClicked = await message
         .awaitMessageComponent({
-          time: 300000,
+          time: 300_000,
         })
         .catch(async (error) => {
           draft.players = [];
@@ -93,7 +94,7 @@ module.exports = async (channel, draft) => {
         });
       }
     }
-    console.log("Team formed with captains.")
+    log("teamFormation.js", "Team formed with captains.")
   }
 
   await message.edit({

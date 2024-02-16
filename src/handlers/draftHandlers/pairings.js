@@ -6,6 +6,7 @@ const {
   ButtonBuilder,
 } = require("discord.js");
 const buttonPermissionCheck = require("../../utils/buttonPermissionCheck.js");
+const log = require("../../utils/log.js");
 const Draft = require("../../models/draftClass.js");
 
 const NUMBER_OF_ROUNDS = 3;
@@ -63,7 +64,7 @@ module.exports = async (channel, draft) => {
     const buttonClicked = await message.awaitMessageComponent({
       time: 855_000
     }).catch(async (error) => {
-      console.log("Pairings revealed after 15min");
+      log("pairings.js", "Pairings revealed after 15min");
       message.edit({
         content: `Play your matches! \nPairings were revealed after 15min`,
           embeds: [pairingsEmbed],
@@ -72,7 +73,7 @@ module.exports = async (channel, draft) => {
       draft.status = "finished";
     });
     if(!buttonClicked) return;
-    console.log(`${buttonClicked.user.username} clicked on the reveal button`)
+    log("pairings.js", `${buttonClicked.user.username} clicked on the reveal button`);
     if (buttonClicked.customId === "reveal") {
         if(buttonPermissionCheck(buttonClicked, draft)) {
         await buttonClicked.update({
