@@ -2,8 +2,8 @@ const shuffleArray = require("../../utils/shuffleArray.js");
 const {
   ButtonStyle,
   ActionRowBuilder,
-  EmbedBuilder,
   ButtonBuilder,
+  ComponentType,
 } = require("discord.js");
 const buttonPermissionCheck = require("../../utils/buttonPermissionCheck.js");
 const log = require("../../utils/log.js");
@@ -16,74 +16,137 @@ const NUMBER_OF_ROUNDS = 3;
  * @param {Draft} draft
  */
 module.exports = async (channel, draft) => {
-  const revealPairingsRow = new ActionRowBuilder().addComponents(
-    new ButtonBuilder()
-      .setCustomId("reveal")
-      .setLabel("Reveal pairings")
-      .setStyle(ButtonStyle.Primary)
-  );
 
-  const message = await channel.send({
-    content: "Click on the button once the draft is over",
-    components: [revealPairingsRow],
-  });
+  let completedMatches = [];
+  let blueScore=0;
+  let redScore=0;
+  let matchesLeft = draft.redTeam.length * NUMBER_OF_ROUNDS;
+  let matchResultCollectors = [];
+  let endMessage;
+  const defaultEndMessage = {content: "Click on the buttons to input the match results", components:[]};
 
   draft.redTeam = shuffleArray(draft.redTeam);
   draft.blueTeam = shuffleArray(draft.blueTeam);
 
-  const pairingsEmbed = new EmbedBuilder().setTitle("Pairings");
-
   for (let round = 1; round <= NUMBER_OF_ROUNDS; round++) {
-    let pairingsEmbedText = "";
-    for (
-      let playerIndex = 0;
-      playerIndex < draft.redTeam.length;
-      playerIndex++
-    ) {
-      pairingsEmbedText += `${draft.redTeam.at(playerIndex).username} vs ${
-        draft.blueTeam.at((playerIndex + round) % draft.blueTeam.length)
-          .username
-      }\n`;
-    }
-    pairingsEmbed.addFields({
-      name: `Round ${round}`,
-      value: pairingsEmbedText,
+    channel.send({
+      content: `Round ${round}`,
     });
-  }
+    completedMatches[round] = [];
+      for (let playerIndex = 0; playerIndex < draft.redTeam.length; playerIndex++) {
+      console.log(`Round ${round} pairing initial send`);
+      const redPlayer = draft.redTeam.at(playerIndex).username;
+      const bluePlayer = draft.blueTeam.at((playerIndex + round) % draft.blueTeam.length).username;
 
-  const finishDraftRow = new ActionRowBuilder().addComponents(
-    new ButtonBuilder()
-      .setCustomId("finish")
-      .setLabel("Finish Draft")
-      .setStyle(ButtonStyle.Success)
-  );
+      let buttons = [];
+      buttons[0] = new ButtonBuilder()
+        .setCustomId(`${redPlayer}`)
+        .setLabel(`${draft.redTeam.at(playerIndex).username}`)
+        .setStyle(ButtonStyle.Danger);
 
-  //Wait for the reveal pairings button to be clicked
-  let pairingsHidden = true;
-  while(draft.status === "pairings") {
-    const buttonClicked = await message.awaitMessageComponent({
-      time: 855_000
-    }).catch(async (error) => {
-      log("pairings.js", "Pairings revealed after 15min");
-      message.edit({
-        content: `Play your matches! \nPairings were revealed after 15min`,
-          embeds: [pairingsEmbed],
-          components: [],
+      buttons[1] = new ButtonBuilder()
+        .setCustomId(`${bluePlayer}`)
+        .setLabel(`${draft.blueTeam.at((playerIndex + round) % draft.blueTeam.length).username}`)
+        .setStyle(ButtonStyle.Primary);
+
+      buttons[2] = new ButtonBuilder()
+        .setCustomId(`unplayed`)
+        .setLabel("Unplayed Match")
+        .setStyle(ButtonStyle.Secondary);
+      
+      const row = new ActionRowBuilder().addComponents(buttons);
+
+      const pairingMessage = await channel.send({
+        components: [row]
+      });
+      const collector = pairingMessage.createMessageComponentCollector({
+        componentType: ComponentType.Button,
       })
-      draft.status = "finished";
-    });
-    if(!buttonClicked) return;
-    log("pairings.js", `${buttonClicked.user.username} clicked on the reveal button`);
-    if (buttonClicked.customId === "reveal") {
-        if(buttonPermissionCheck(buttonClicked, draft)) {
-        await buttonClicked.update({
-          content: `Play your matches! \nPairings were revealed by ${buttonClicked.user.username}`,
-          embeds: [pairingsEmbed],
-          components: [],
+      matchResultCollectors.push(collector);
+      collector.on('collect', async (interaction) => {
+        console.log(`log button interaction ${interaction.customId}`);
+        interaction.deferUpdate();
+        //completedMatches[0] = { bluePlayer: bluePlayer, redPlayer: redPlayer, result: 1}
+
+        /*Undoing a previously inputted result*/
+        if(interaction.customId == completedMatches[round][playerIndex]){
+            buttons[0].setLabel(`${redPlayer}`).setStyle(ButtonStyle.Danger);
+            buttons[1].setLabel(`${bluePlayer}`).setStyle(ButtonStyle.Primary);
+            buttons[2].setLabel(`Unplayed Match`).setStyle(ButtonStyle.Secondary);
+            completedMatches[round][playerIndex]=null;
+            matchesLeft++;
+            if(interaction.customId === redPlayer)
+              redScore--;
+            else if(interaction.customId === bluePlayer)
+              blueScore--;
+        }
+        /*New or modified match result*/
+        else {
+          if (!completedMatches[round][playerIndex]) {
+            matchesLeft--;
+          }
+          switch(interaction.customId) {
+            case redPlayer:
+              buttons[0].setLabel(`${redPlayer} 🏆`).setStyle(ButtonStyle.Success);
+              buttons[1].setLabel(`${bluePlayer}`).setStyle(ButtonStyle.Secondary);
+              buttons[2].setLabel(`Unplayed Match`).setStyle(ButtonStyle.Secondary);
+              completedMatches[round][playerIndex] = redPlayer;
+              redScore++;
+              break;
+            case bluePlayer:
+              buttons[0].setLabel(`${redPlayer}`).setStyle(ButtonStyle.Secondary);
+              buttons[1].setLabel(`${bluePlayer} 🏆`).setStyle(ButtonStyle.Success);
+              buttons[2].setLabel(`Unplayed Match`).setStyle(ButtonStyle.Secondary);
+              completedMatches[round][playerIndex] = bluePlayer;
+              blueScore++;
+              break;
+            case "unplayed":
+              buttons[0].setLabel(`${redPlayer}`).setStyle(ButtonStyle.Secondary);
+              buttons[1].setLabel(`${bluePlayer}`).setStyle(ButtonStyle.Secondary);
+              buttons[2].setLabel(`Unplayed 🤝`).setStyle(ButtonStyle.Success);
+              completedMatches[round][playerIndex] = "unplayed";
+              break;
+          }
+        }
+        const row = new ActionRowBuilder().addComponents(buttons);
+        await pairingMessage.edit({
+          components: [row]
         });
-      }
-      draft.status = "finished";
+        if(matchesLeft == 0){
+          const finishButton = new ButtonBuilder().setLabel("Finish draft").setCustomId("finish").setStyle(ButtonStyle.Primary);
+          await endMessage.edit({
+            content: `All matches have been completed. Press the button to end the draft and save the results in the database.`,
+            components: [new ActionRowBuilder().addComponents(finishButton)],
+          });
+        } else {
+          await endMessage.edit(defaultEndMessage);
+        }
+      });
+      collector.on('end', async () => {
+        buttons[0].setDisabled();
+        buttons[1].setDisabled();
+        buttons[2].setDisabled();
+        const row = new ActionRowBuilder().addComponents(buttons);
+        await pairingMessage.edit({
+          components: [row]
+        });
+      });
     }
   }
+  endMessage = await channel.send(defaultEndMessage);
+  const reply = await endMessage.awaitMessageComponent();
+  let draftResultMessage;
+  if(redScore>blueScore) 
+    draftResultMessage = `🔴 Red team 🔴 wins the draft ${redScore} - ${blueScore} 🏆`;
+  else if(redScore<blueScore)
+   draftResultMessage = `🔵 Blue team 🔵 wins the draft ${blueScore} - ${redScore} 🏆`;
+  else
+    draftResultMessage = `🤝 Good Game! It's a draw! ${redScore} - ${blueScore} 🤝`
+
+  await reply.update({content: draftResultMessage, components: []});
+  matchResultCollectors.forEach( (c) => {
+    c.stop();
+  });
+  draft.status = "finished";
   return;
 };
