@@ -5,9 +5,11 @@ const {
   ButtonBuilder,
   ComponentType,
 } = require("discord.js");
-const buttonPermissionCheck = require("../../utils/buttonPermissionCheck.js");
+const { Op } = require('sequelize');
+const { DraftResult, MatchResult} = require("../../dbObjects.js")
 const log = require("../../utils/log.js");
 const Draft = require("../../models/draftClass.js");
+const ResultSlip = require("../../models/resultSlipClass.js");
 
 const NUMBER_OF_ROUNDS = 3;
 
@@ -33,11 +35,11 @@ module.exports = async (channel, draft) => {
       content: `Round ${round}`,
     });
     completedMatches[round] = [];
-      for (let playerIndex = 0; playerIndex < draft.redTeam.length; playerIndex++) {
-      console.log(`Round ${round} pairing initial send`);
+    for (let playerIndex = 0; playerIndex < draft.redTeam.length; playerIndex++) {
+      console.log(`Round ${round} pairing initial sent`);
       const redPlayer = draft.redTeam.at(playerIndex).username;
       const bluePlayer = draft.blueTeam.at((playerIndex + round) % draft.blueTeam.length).username;
-
+      completedMatches[round][playerIndex] = new ResultSlip(redPlayer, bluePlayer);
       let buttons = [];
       buttons[0] = new ButtonBuilder()
         .setCustomId(`${redPlayer}`)
@@ -64,16 +66,14 @@ module.exports = async (channel, draft) => {
       })
       matchResultCollectors.push(collector);
       collector.on('collect', async (interaction) => {
-        console.log(`log button interaction ${interaction.customId}`);
         interaction.deferUpdate();
-        //completedMatches[0] = { bluePlayer: bluePlayer, redPlayer: redPlayer, result: 1}
 
         /*Undoing a previously inputted result*/
-        if(interaction.customId == completedMatches[round][playerIndex]){
+        if(interaction.customId == completedMatches[round][playerIndex].getNameWinner()){
             buttons[0].setLabel(`${redPlayer}`).setStyle(ButtonStyle.Danger);
             buttons[1].setLabel(`${bluePlayer}`).setStyle(ButtonStyle.Primary);
             buttons[2].setLabel(`Unplayed Match`).setStyle(ButtonStyle.Secondary);
-            completedMatches[round][playerIndex]=null;
+            completedMatches[round][playerIndex].result = null;
             matchesLeft++;
             if(interaction.customId === redPlayer)
               redScore--;
@@ -82,7 +82,7 @@ module.exports = async (channel, draft) => {
         }
         /*New or modified match result*/
         else {
-          if (!completedMatches[round][playerIndex]) {
+          if (!completedMatches[round][playerIndex].result) {
             matchesLeft--;
           }
           switch(interaction.customId) {
@@ -90,21 +90,21 @@ module.exports = async (channel, draft) => {
               buttons[0].setLabel(`${redPlayer} 🏆`).setStyle(ButtonStyle.Success);
               buttons[1].setLabel(`${bluePlayer}`).setStyle(ButtonStyle.Secondary);
               buttons[2].setLabel(`Unplayed Match`).setStyle(ButtonStyle.Secondary);
-              completedMatches[round][playerIndex] = redPlayer;
+              completedMatches[round][playerIndex].result = redPlayer;
               redScore++;
               break;
             case bluePlayer:
               buttons[0].setLabel(`${redPlayer}`).setStyle(ButtonStyle.Secondary);
               buttons[1].setLabel(`${bluePlayer} 🏆`).setStyle(ButtonStyle.Success);
               buttons[2].setLabel(`Unplayed Match`).setStyle(ButtonStyle.Secondary);
-              completedMatches[round][playerIndex] = bluePlayer;
+              completedMatches[round][playerIndex].result = bluePlayer;
               blueScore++;
               break;
             case "unplayed":
               buttons[0].setLabel(`${redPlayer}`).setStyle(ButtonStyle.Secondary);
               buttons[1].setLabel(`${bluePlayer}`).setStyle(ButtonStyle.Secondary);
               buttons[2].setLabel(`Unplayed 🤝`).setStyle(ButtonStyle.Success);
-              completedMatches[round][playerIndex] = "unplayed";
+              completedMatches[round][playerIndex].result = "unplayed";
               break;
           }
         }
@@ -147,6 +147,23 @@ module.exports = async (channel, draft) => {
   matchResultCollectors.forEach( (c) => {
     c.stop();
   });
+
+  /*Insert result in database */
+  try {
+    const draftResult = await DraftResult.create({guild_id: channel.guildId});
+    completedMatches.flat().forEach( (match) => {
+      MatchResult.create({
+        draft_id: draftResult.draft_number,
+        bluePlayer: match.bluePlayer,
+        redPlayer: match.redPlayer,
+        result: match.result,
+      })
+    });
+  }
+  catch(error){
+    log("pairings.js", error);
+  }
+
   draft.status = "finished";
   return;
 };
