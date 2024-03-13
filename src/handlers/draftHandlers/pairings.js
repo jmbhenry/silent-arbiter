@@ -6,10 +6,11 @@ const {
   ComponentType,
 } = require("discord.js");
 const { Op } = require('sequelize');
-const { DraftResult, MatchResult} = require("../../dbObjects.js")
+const { DraftResult, MatchResult} = require("../../dbObjects.js");
 const log = require("../../utils/log.js");
 const Draft = require("../../models/draftClass.js");
 const ResultSlip = require("../../models/resultSlipClass.js");
+const draftResult = require("../../models/draftResult.js");
 
 const NUMBER_OF_ROUNDS = 3;
 
@@ -20,8 +21,6 @@ const NUMBER_OF_ROUNDS = 3;
 module.exports = async (channel, draft) => {
 
   let completedMatches = [];
-  let blueScore=0;
-  let redScore=0;
   let matchesLeft = draft.redTeam.length * NUMBER_OF_ROUNDS;
   let matchResultCollectors = [];
   let endMessage;
@@ -32,27 +31,26 @@ module.exports = async (channel, draft) => {
 
   for (let round = 1; round <= NUMBER_OF_ROUNDS; round++) {
     channel.send({
-      content: `Round ${round}`,
+      content: `**Round ${round}**`,
     });
     completedMatches[round] = [];
     for (let playerIndex = 0; playerIndex < draft.redTeam.length; playerIndex++) {
-      console.log(`Round ${round} pairing initial sent`);
-      const redPlayer = draft.redTeam.at(playerIndex).username;
-      const bluePlayer = draft.blueTeam.at((playerIndex + round) % draft.blueTeam.length).username;
+      const redPlayer = draft.redTeam.at(playerIndex);
+      const bluePlayer = draft.blueTeam.at((playerIndex + round) % draft.blueTeam.length);
       completedMatches[round][playerIndex] = new ResultSlip(redPlayer, bluePlayer);
       let buttons = [];
       buttons[0] = new ButtonBuilder()
-        .setCustomId(`${redPlayer}`)
-        .setLabel(`${draft.redTeam.at(playerIndex).username}`)
+        .setCustomId(`${redPlayer.id}`)
+        .setLabel(`${draft.redTeam.at(playerIndex).displayName}`)
         .setStyle(ButtonStyle.Danger);
 
       buttons[1] = new ButtonBuilder()
-        .setCustomId(`${bluePlayer}`)
-        .setLabel(`${draft.blueTeam.at((playerIndex + round) % draft.blueTeam.length).username}`)
+        .setCustomId(`${bluePlayer.id}`)
+        .setLabel(`${draft.blueTeam.at((playerIndex + round) % draft.blueTeam.length).displayName}`)
         .setStyle(ButtonStyle.Primary);
 
       buttons[2] = new ButtonBuilder()
-        .setCustomId(`unplayed`)
+        .setCustomId("unplayed")
         .setLabel("Unplayed Match")
         .setStyle(ButtonStyle.Secondary);
       
@@ -67,18 +65,13 @@ module.exports = async (channel, draft) => {
       matchResultCollectors.push(collector);
       collector.on('collect', async (interaction) => {
         interaction.deferUpdate();
-
         /*Undoing a previously inputted result*/
-        if(interaction.customId == completedMatches[round][playerIndex].getNameWinner()){
-            buttons[0].setLabel(`${redPlayer}`).setStyle(ButtonStyle.Danger);
-            buttons[1].setLabel(`${bluePlayer}`).setStyle(ButtonStyle.Primary);
+        if(interaction.customId == completedMatches[round][playerIndex].getWinner()){
+            buttons[0].setLabel(`${redPlayer.displayName}`).setStyle(ButtonStyle.Danger);
+            buttons[1].setLabel(`${bluePlayer.displayName}`).setStyle(ButtonStyle.Primary);
             buttons[2].setLabel(`Unplayed Match`).setStyle(ButtonStyle.Secondary);
             completedMatches[round][playerIndex].result = null;
             matchesLeft++;
-            if(interaction.customId === redPlayer)
-              redScore--;
-            else if(interaction.customId === bluePlayer)
-              blueScore--;
         }
         /*New or modified match result*/
         else {
@@ -86,23 +79,21 @@ module.exports = async (channel, draft) => {
             matchesLeft--;
           }
           switch(interaction.customId) {
-            case redPlayer:
-              buttons[0].setLabel(`${redPlayer} 🏆`).setStyle(ButtonStyle.Success);
-              buttons[1].setLabel(`${bluePlayer}`).setStyle(ButtonStyle.Secondary);
+            case redPlayer.id:
+              buttons[0].setLabel(`${redPlayer.displayName} 🏆`).setStyle(ButtonStyle.Success);
+              buttons[1].setLabel(`${bluePlayer.displayName}`).setStyle(ButtonStyle.Secondary);
               buttons[2].setLabel(`Unplayed Match`).setStyle(ButtonStyle.Secondary);
-              completedMatches[round][playerIndex].result = redPlayer;
-              redScore++;
+              completedMatches[round][playerIndex].result = "red";
               break;
-            case bluePlayer:
-              buttons[0].setLabel(`${redPlayer}`).setStyle(ButtonStyle.Secondary);
-              buttons[1].setLabel(`${bluePlayer} 🏆`).setStyle(ButtonStyle.Success);
+            case bluePlayer.id:
+              buttons[0].setLabel(`${redPlayer.displayName}`).setStyle(ButtonStyle.Secondary);
+              buttons[1].setLabel(`${bluePlayer.displayName} 🏆`).setStyle(ButtonStyle.Success);
               buttons[2].setLabel(`Unplayed Match`).setStyle(ButtonStyle.Secondary);
-              completedMatches[round][playerIndex].result = bluePlayer;
-              blueScore++;
+              completedMatches[round][playerIndex].result = "blue";
               break;
             case "unplayed":
-              buttons[0].setLabel(`${redPlayer}`).setStyle(ButtonStyle.Secondary);
-              buttons[1].setLabel(`${bluePlayer}`).setStyle(ButtonStyle.Secondary);
+              buttons[0].setLabel(`${redPlayer.displayName}`).setStyle(ButtonStyle.Secondary);
+              buttons[1].setLabel(`${bluePlayer.displayName}`).setStyle(ButtonStyle.Secondary);
               buttons[2].setLabel(`Unplayed 🤝`).setStyle(ButtonStyle.Success);
               completedMatches[round][playerIndex].result = "unplayed";
               break;
@@ -136,13 +127,30 @@ module.exports = async (channel, draft) => {
   endMessage = await channel.send(defaultEndMessage);
   const reply = await endMessage.awaitMessageComponent();
   let draftResultMessage;
-  if(redScore>blueScore) 
-    draftResultMessage = `🔴 Red team 🔴 wins the draft ${redScore} - ${blueScore} 🏆`;
+  let redScore = 0;
+  let blueScore = 0;
+  completedMatches.flat().forEach( (match) => {
+    if(match.result == "red")
+      redScore++;
+    else if(match.result == "blue")
+      blueScore++;
+  });
+  draft.result = "draw";
+  if(redScore>blueScore)
+    draft.result = "red";
   else if(redScore<blueScore)
-   draftResultMessage = `🔵 Blue team 🔵 wins the draft ${blueScore} - ${redScore} 🏆`;
-  else
-    draftResultMessage = `🤝 Good Game! It's a draw! ${redScore} - ${blueScore} 🤝`
-
+    draft.result = "blue";
+  switch(draft.result) {
+    case "red":
+      draftResultMessage = `🔴 Red team 🔴 wins the draft ${redScore} - ${blueScore} 🏆`;
+      break;
+    case "blue" :
+      draftResultMessage = `🔵 Blue team 🔵 wins the draft ${blueScore} - ${redScore} 🏆`;
+      break;
+    case "draw" :
+      draftResultMessage = `🤝 Good Game! It's a draw! ${redScore} - ${blueScore} 🤝`;
+      break;
+  }
   await reply.update({content: draftResultMessage, components: []});
   matchResultCollectors.forEach( (c) => {
     c.stop();
@@ -150,20 +158,26 @@ module.exports = async (channel, draft) => {
 
   /*Insert result in database */
   try {
-    const draftResult = await DraftResult.create({guild_id: channel.guildId});
+    const draftResult = await DraftResult.create({
+      guild_id: channel.guildId,
+      team_formation: draft.teamFormation,
+      result: draft.result,
+      red_captain: draft.redCaptain ? draft.redCaptain.id : null,
+      blue_captain: draft.blueCaptain ? draft.blueCaptain.id : null,
+    });
     completedMatches.flat().forEach( (match) => {
       MatchResult.create({
         draft_id: draftResult.draft_number,
-        bluePlayer: match.bluePlayer,
-        redPlayer: match.redPlayer,
+        bluePlayer: match.bluePlayer.id,
+        redPlayer: match.redPlayer.id,
         result: match.result,
       })
     });
+    log("pairings.js", `Data of draft successfully saved in database.`);
   }
   catch(error){
     log("pairings.js", error);
   }
-
   draft.status = "finished";
   return;
 };

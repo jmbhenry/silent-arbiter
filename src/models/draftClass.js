@@ -7,6 +7,7 @@ module.exports = class Draft {
   redTeam;
   blueCaptain;
   blueTeam;
+  result;
 
   constructor() {
     this.status = "queue";

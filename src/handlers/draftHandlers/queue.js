@@ -64,7 +64,7 @@ module.exports = async (interaction, draft) => {
 
   log("queue.js", "Starting up queue");
   //Waiting for queue to fill up
-
+  
   while (draft.status === "queue") {
     const buttonClickedInteraction = await queueMessage
       .awaitMessageComponent({
@@ -81,7 +81,7 @@ module.exports = async (interaction, draft) => {
     switch (buttonClickedInteraction.customId) {
       //Click on Join button
       case "join":
-        log("queue.js", `Joined button clicked by ${buttonClickedInteraction.user.username}`);
+        log("queue.js", `Join button clicked by ${buttonClickedInteraction.member.displayName}`);
         if (draft.players.length >= DRAFT_QUEUE_MAX_SIZE) {
           buttonClickedInteraction.reply({
             content: "The draft is full, sorry",
@@ -89,7 +89,7 @@ module.exports = async (interaction, draft) => {
           });
         } else if (
           draft.players.find(
-            (player) => player.id === buttonClickedInteraction.user.id
+            (player) => player.id === buttonClickedInteraction.member.id
           )
         ) {
           buttonClickedInteraction.reply({
@@ -97,8 +97,8 @@ module.exports = async (interaction, draft) => {
             ephemeral: true,
           });
         } else {
-          draft.players.push(buttonClickedInteraction.user);
-          log("queue.js", `User ${buttonClickedInteraction.user.username} joined the queue`);
+          draft.players.push(buttonClickedInteraction.member);
+          log("queue.js", `User ${buttonClickedInteraction.member.displayName} joined the queue`);
           await buttonClickedInteraction.update({
             embeds: [
               new EmbedBuilder()
@@ -110,13 +110,13 @@ module.exports = async (interaction, draft) => {
         break;
       // Click on Leave button
       case "leave":
-        log("queue.js", `Leave button clicked by ${buttonClickedInteraction.user.username}`);
+        log("queue.js", `Leave button clicked by ${buttonClickedInteraction.member.displayName}`);
         const index = draft.players.findIndex(
-          (player) => player.id === buttonClickedInteraction.user.id
+          (player) => player.id === buttonClickedInteraction.member.id
         );
         if (index > -1) {
           draft.players.splice(index, 1);
-          log("queue.js", `User ${buttonClickedInteraction.user.username} left the queue`);
+          log("queue.js", `User ${buttonClickedInteraction.member.displayName} left the queue`);
           await buttonClickedInteraction.update({
             embeds: [
               new EmbedBuilder()
@@ -133,7 +133,7 @@ module.exports = async (interaction, draft) => {
         break;
       //Click on Start button
       case "start":
-        log("queue.js", `${buttonClickedInteraction.user.username} clicked on Start the draft`);
+        log("queue.js", `${buttonClickedInteraction.member.displayName} clicked on Start the draft`);
         if (!buttonPermissionCheck(buttonClickedInteraction, draft)) break;
         if (draft.players.length < DRAFT_MIN_SIZE) {
           buttonClickedInteraction.reply({
@@ -149,7 +149,7 @@ module.exports = async (interaction, draft) => {
           draft.status = "teamFormation";
           log(
             "queue.js",
-            `${buttonClickedInteraction.user.username} started the draft`
+            `${buttonClickedInteraction.member.displayName} started the draft`
           );
           await buttonClickedInteraction.update({
             content: "Draft started. Look below for team formation.",
@@ -160,7 +160,7 @@ module.exports = async (interaction, draft) => {
         break;
       //Click on Cancel button
       case "cancel":
-        log("queue.js", `${buttonClickedInteraction.user.username} clicked on cancelled the draft`);
+        log("queue.js", `${buttonClickedInteraction.member.displayName} clicked on cancelled the draft`);
         if (!buttonPermissionCheck(buttonClickedInteraction, draft)) break;
         await buttonClickedInteraction.update({
           content: "Draft cancelled",

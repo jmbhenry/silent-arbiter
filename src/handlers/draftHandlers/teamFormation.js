@@ -58,7 +58,7 @@ module.exports = async (channel, draft) => {
       let rows = getPlayerButtonsRows(draft.players);
 
       await message.edit({
-        content: `${draft.redCaptain.username} and ${draft.blueCaptain.username} are the team captains.`,
+        content: `${draft.redCaptain.displayName} and ${draft.blueCaptain.displayName} are the team captains.`,
         embeds: [getTeamEmbed(draft.redTeam, draft.blueTeam, picker)],
         components: rows,
       });
@@ -77,7 +77,7 @@ module.exports = async (channel, draft) => {
         });
       if (!buttonClicked) return;
 
-      if (buttonClicked.member.user != picker.captain) {
+      if (buttonClicked.member != picker.captain) {
         await buttonClicked.reply({
           content: "Don't click that!",
           ephemeral: true,
@@ -89,7 +89,7 @@ module.exports = async (channel, draft) => {
         picker.team.push(pickedPlayer);
         pickCounter++;
         await buttonClicked.reply({
-          content: `You picked ${pickedPlayer.username}`,
+          content: `You picked ${pickedPlayer.displayName}`,
           ephemeral: true,
         });
       }
@@ -126,7 +126,7 @@ function getPlayerButtonsRows(players) {
       .components.push(
         new ButtonBuilder()
           .setCustomId(buttonCounter.toString())
-          .setLabel(player.username)
+          .setLabel(player.displayName)
           .setStyle(ButtonStyle.Secondary)
       );
     buttonCounter++;
@@ -148,7 +148,7 @@ function getTeamEmbed(redTeam, blueTeam, picker) {
     }
   );
   if (picker) {
-    embed.setDescription(`It's ${picker.captain.username}'s turn to pick`);
+    embed.setDescription(`It's ${picker.captain.displayName}'s turn to pick`);
   }
   return embed;
 }

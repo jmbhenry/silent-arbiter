@@ -1,4 +1,5 @@
 const Sequelize = require('sequelize');
+const log = require("./utils/log.js");
 
 const sequelize = new Sequelize('database', 'username', 'password', {
 	host: 'localhost',

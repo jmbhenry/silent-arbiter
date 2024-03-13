@@ -15,7 +15,7 @@ module.exports = {
    * @param {ChatInputCommandInteraction} interaction
    */
   callback: async (client, interaction) => {
-    log("draft.js",`Draft command called by ${interaction.user.username} in ${interaction.channel.name}`);
+    log("draft.js",`Draft command called by ${interaction.member.displayName} in ${interaction.channel.name}`);
     if(guildEnv(interaction.guildId).DRAFT_CHANNELS.findIndex((c) => c == interaction.channelId) === -1) {
       interaction.reply({
         content: "You can't use this command in this channel.",
@@ -32,7 +32,7 @@ module.exports = {
       }
       ongoingDrafts.set(interaction.channelId, true);
       let draft = new Draft();
-      draft.leader = interaction.user;
+      draft.leader = interaction.member;
       draft.status = "queue";
       if(interaction.options.get("team-formation")) {
         draft.teamFormation = interaction.options.get("team-formation").value;
