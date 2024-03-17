@@ -18,7 +18,7 @@ const DRAFT_ORDER = [0, 1, 1, 0, 0, 1];
  */
 module.exports = async (channel, draft) => {
   const message = await channel.send({ content: "Loading..." });
-
+  draft.link = message;
   //Random team formation
   if (draft.teamFormation === "random") {
     draft.players = shuffleArray(draft.players);

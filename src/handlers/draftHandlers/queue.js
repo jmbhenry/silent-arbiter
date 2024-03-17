@@ -61,6 +61,7 @@ module.exports = async (interaction, draft) => {
     content: `Team Formation: ${draft.teamFormation}`,
     components: [buttonsRow],
   });
+  draft.link = queueMessage;
 
   log("queue.js", "Starting up queue");
   //Waiting for queue to fill up

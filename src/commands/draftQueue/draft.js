@@ -7,14 +7,13 @@ const log = require("../../utils/log.js");
 const Draft = require("../../models/draftClass.js");
 
 
-let ongoingDrafts = new Map();
-
 module.exports = {
   /**
    * @param {Client} client
    * @param {ChatInputCommandInteraction} interaction
+   * @param {Map} ongoingDrafts
    */
-  callback: async (client, interaction) => {
+  callback: async (client, interaction, ongoingDrafts) => {
     log("draft.js",`Draft command called by ${interaction.member.displayName} in ${interaction.channel.name}`);
     if(guildEnv(interaction.guildId).DRAFT_CHANNELS.findIndex((c) => c == interaction.channelId) === -1) {
       interaction.reply({
@@ -30,8 +29,8 @@ module.exports = {
         });
         return;
       }
-      ongoingDrafts.set(interaction.channelId, true);
       let draft = new Draft();
+      ongoingDrafts.set(interaction.channelId, draft);
       draft.leader = interaction.member;
       draft.status = "queue";
       if(interaction.options.get("team-formation")) {

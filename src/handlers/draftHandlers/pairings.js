@@ -29,8 +29,10 @@ module.exports = async (channel, draft) => {
   draft.redTeam = shuffleArray(draft.redTeam);
   draft.blueTeam = shuffleArray(draft.blueTeam);
 
+  draft.link = await channel.send({content: ` # Pairings`});
+
   for (let round = 1; round <= NUMBER_OF_ROUNDS; round++) {
-    channel.send({
+    await channel.send({
       content: `**Round ${round}**`,
     });
     completedMatches[round] = [];
