@@ -1,3 +1,5 @@
+const log = require("../../utils/log.js");
+
 module.exports = (client) => {
-    console.log(`${client.user.tag} is online`);
+    log("consoleLog.js", `${client.user.tag} is online`);
 };

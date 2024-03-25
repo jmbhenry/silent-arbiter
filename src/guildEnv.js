@@ -23,6 +23,7 @@ module.exports = (guildId) => {
         "1133907357101994104", //#lsv's-draft-room
         "1138664902186242218", //#dr-eli-kassis'-draft-room
         "1141401215549313104", //#captain-sam's-draft-room
+        "1176339019823579296", //jbros-bang-bang-room
         "1141401243537903626", //#timr0ds-100-ticket-room
         "1141412157964161064", //#scheduled-drafts
         "1176339019823579296"  //#teamjbro-bang-bang-room
@@ -30,8 +31,10 @@ module.exports = (guildId) => {
       ROLE_CHANNEL: "1142675186190127225",
       OPT_IN_ROLES: [
         { id: "940838664861282395", label: "Cube Drafters 🧊", style: ButtonStyle.Primary, description: "Get notifications for Cube team drafts and 8-person rush when it's available on MTGO." },
+        { id: "1199206462073876501", label:"64 Player 🏆", style: ButtonStyle.Danger, description: "Get notifications for official 64 players drafts that are missing a few people to fire."  },
         { id: "940838804816789525", label: "Current Set Drafters 🃏", style: ButtonStyle.Secondary, description: "Get notifications for 8-person rush of the current draft set." },
-        { id: "1138910426139205693", label: "Turbo Drafters 🚀", style: ButtonStyle.Danger, description: "Get notifications for fast Cube team drafts that only play one round." },
+        { id: "1138910426139205693", label: "Turbo Drafters 🚀", style: ButtonStyle.Secondary, description: "Get notifications for fast Cube team drafts that only play one round." },
+        { id: "1178857738898518068", label:"Amogus 👩‍🚀", style: ButtonStyle.Success, description: "Get notifications for Among Us games."  },
       ],
     };
   }

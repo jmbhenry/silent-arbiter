@@ -2,6 +2,7 @@ require("dotenv").config();
 const areCommandsDifferent = require("../../utils/areCommandsDifferent");
 const getApplicationCommands = require("../../utils/getApplicationCommands");
 const getLocalCommands = require("../../utils/getLocalCommands");
+const log = require("../../utils/log")
 
 module.exports = async (client) => {
   try {
@@ -20,7 +21,8 @@ module.exports = async (client) => {
       if (existingCommand) {
         if (localCommand.deleted) {
           await applicationCommands.delete(existingCommand.id);
-          console.log(`🗑 Deleted command "${name}".`);
+          log("01registerCommands.js",`🗑 Deleted command "${name}".`);
+
           continue;
         }
 
@@ -30,11 +32,12 @@ module.exports = async (client) => {
             options,
           });
 
-          console.log(`🔁 Edited command "${name}".`);
+          log( "01registerCommands.js", `🔁 Edited command "${name}".`);
         }
       } else {
         if (localCommand.deleted) {
-          console.log(
+          log(
+            "01registerCommands.js",
             `⏩ Skipping registering command "${name}" as it's set to delete.`
           );
           continue;
@@ -45,10 +48,10 @@ module.exports = async (client) => {
           description,
           options,
         });
-        console.log(`👍 Registered command "${name}."`);
+        log("01registerCommands.js", `👍 Registered command "${name}."`);
       }
     }
   } catch (error) {
-    console.log(`There was an error 01registerCommands.js: ${error}`);
+    log("01registerCommands.js", `There was an error 01registerCommands.js: ${error}`);
   }
 };

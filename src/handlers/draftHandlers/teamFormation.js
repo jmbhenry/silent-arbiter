@@ -7,6 +7,7 @@ const {
 } = require("discord.js");
 const shuffleArray = require("../../utils/shuffleArray.js");
 const formatPlayerList = require("../../utils/formatPlayerList.js");
+const log = require("../../utils/log.js");
 const Draft = require("../../models/draftClass.js");
 
 const DRAFT_ORDER = [0, 1, 1, 0, 0, 1];
@@ -17,7 +18,7 @@ const DRAFT_ORDER = [0, 1, 1, 0, 0, 1];
  */
 module.exports = async (channel, draft) => {
   const message = await channel.send({ content: "Loading..." });
-
+  draft.link = message;
   //Random team formation
   if (draft.teamFormation === "random") {
     draft.players = shuffleArray(draft.players);
@@ -31,7 +32,7 @@ module.exports = async (channel, draft) => {
         team = "red";
       }
     }
-    console.log("Team formed randomly.")
+    log("teamFormation.js", "Team formed randomly.")
   } else if (draft.teamFormation === "captains") {
     //Captains team formation
 
@@ -57,14 +58,14 @@ module.exports = async (channel, draft) => {
       let rows = getPlayerButtonsRows(draft.players);
 
       await message.edit({
-        content: `${draft.redCaptain.username} and ${draft.blueCaptain.username} are the team captains.`,
+        content: `${draft.redCaptain.displayName} and ${draft.blueCaptain.displayName} are the team captains.`,
         embeds: [getTeamEmbed(draft.redTeam, draft.blueTeam, picker)],
         components: rows,
       });
 
       const buttonClicked = await message
         .awaitMessageComponent({
-          time: 300000,
+          time: 300_000,
         })
         .catch(async (error) => {
           draft.players = [];
@@ -76,7 +77,7 @@ module.exports = async (channel, draft) => {
         });
       if (!buttonClicked) return;
 
-      if (buttonClicked.member.user != picker.captain) {
+      if (buttonClicked.member != picker.captain) {
         await buttonClicked.reply({
           content: "Don't click that!",
           ephemeral: true,
@@ -88,12 +89,12 @@ module.exports = async (channel, draft) => {
         picker.team.push(pickedPlayer);
         pickCounter++;
         await buttonClicked.reply({
-          content: `You picked ${pickedPlayer.username}`,
+          content: `You picked ${pickedPlayer.displayName}`,
           ephemeral: true,
         });
       }
     }
-    console.log("Team formed with captains.")
+    log("teamFormation.js", "Team formed with captains.")
   }
 
   await message.edit({
@@ -125,7 +126,7 @@ function getPlayerButtonsRows(players) {
       .components.push(
         new ButtonBuilder()
           .setCustomId(buttonCounter.toString())
-          .setLabel(player.username)
+          .setLabel(player.displayName)
           .setStyle(ButtonStyle.Secondary)
       );
     buttonCounter++;
@@ -147,7 +148,7 @@ function getTeamEmbed(redTeam, blueTeam, picker) {
     }
   );
   if (picker) {
-    embed.setDescription(`It's ${picker.captain.username}'s turn to pick`);
+    embed.setDescription(`It's ${picker.captain.displayName}'s turn to pick`);
   }
   return embed;
 }

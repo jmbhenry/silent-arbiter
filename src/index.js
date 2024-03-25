@@ -2,12 +2,13 @@ require("dotenv").config();
 const {
   Client,
   IntentsBitField,
-  ButtonBuilder,
-  ButtonStyle,
-  ActionRowBuilder,
+  Events,
 } = require("discord.js");
-const mongoose = require("mongoose");
+const Sequelize = require('sequelize');
 const eventHandler = require("./handlers/eventHandler");
+const log = require("./utils/log.js");
+const draftResult = require("./models/draftResult.js");
+
 
 const client = new Client({
   intents: [
@@ -19,15 +20,24 @@ const client = new Client({
   ],
 });
 
+const sequelize = new Sequelize('database', 'user', 'password', {
+	host: 'localhost',
+	dialect: 'sqlite',
+	logging: false,
+	// SQLite only
+	storage: 'database.sqlite',
+});
+
+client.once(Events.ClientReady, readyClient => {
+	log("index.js",`Ready! Logged in as ${readyClient.user.tag}`);
+});
+
 (async () => {
   try {
-    //mongoose.set('strictQuery', false);
-    //await mongoose.connect(process.env.MONGODB_URI);
-    //console.log("Connected to DB.")
     eventHandler(client);
+    client.login(process.env.TOKEN);
   } catch (error) {
-    console.log(`Error connecting to the database : ${error}`);
+    log("index.js", `Error connecting to the database : ${error}`);
   }
 })();
 
-client.login(process.env.TOKEN);

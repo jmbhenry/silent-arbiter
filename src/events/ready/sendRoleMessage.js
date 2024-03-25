@@ -4,6 +4,7 @@ const {
   ButtonBuilder,
 } = require("discord.js");
 const guildEnv = require("../../guildEnv.js");
+const log = require("../../utils/log.js");
 /**
  * @param {Client} client
  */
@@ -33,20 +34,20 @@ module.exports = async (client) => {
             content : roleMessageText,
             components : [row]
           })
-          console.log("Send initial role message.");
+          log("sendRoleMessage.js", "Send initial role message.");
         } else {
           for(message of messages) {
             message[1].edit({
               content : roleMessageText, 
               components : [row]
             })
-            console.log("Edited role message.");
+            log("sendRoleMessage.js", "Edited role message.");
           }
         }
       });
       process.exit
     });
   } catch (error) {
-    console.log(`Error in sendRoleMessage: ${error}`);
+    log("sendRoleMessage.js", `Error in sendRoleMessage: ${error}`);
   }
 };

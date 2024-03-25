@@ -10,7 +10,7 @@ module.exports = (interaction, draft) => {
   let permission = true;
     if (
     !(
-      interaction.user.id === draft.leader.id ||
+      interaction.member.id === draft.leader.id ||
       interaction.member.roles.cache.has(botAdmin)
     )
   ) {
