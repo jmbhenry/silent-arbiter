@@ -47,7 +47,7 @@ module.exports = {
         const secondPlayer = await interaction.guild.members.fetch(secondPlayerId);
         let recordReply;
         if(!secondPlayerId){
-            recordReply = `${player.displayName}'s match record is ${wins} wins and ${losses} losses. Winrate: ${(wins/(wins+losses))*100}%.`;
+            recordReply = `${player.displayName}'s match record is ${wins} wins and ${losses} losses. Winrate: ${(Number.parseFloat((wins/(wins+losses))*100).toFixed(2))}%.`;
         } else {
             recordReply = `In head to head matches, ${player.displayName} has ${wins} wins to ${losses} losses against ${secondPlayer.displayName}.`;
         }
