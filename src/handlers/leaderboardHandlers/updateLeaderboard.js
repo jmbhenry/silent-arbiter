@@ -11,8 +11,7 @@ module.exports = async(client, guild) => {
     const channel = await client.channels.cache.get(ge.LEADERBOARD_CHANNEL);
     if (!channel) return;
 
-    const leaderboardEmbed = new EmbedBuilder()
-        .setTitle("Leaderboards");
+    const leaderboardEmbed = new EmbedBuilder();
     const leaderboards = await Promise.all([
             alltimeWinrate(client, guild),
             matchesPlayed(client, guild),
