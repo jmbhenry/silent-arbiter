@@ -49,7 +49,7 @@ module.exports = {
             await teamFormation(interaction.channel, draft);
             break;
           case "pairings":
-            await pairings(interaction.channel, draft);
+            await pairings(client, interaction.channel, draft);
             break;
           case "finished":
             await interaction.channel.send({

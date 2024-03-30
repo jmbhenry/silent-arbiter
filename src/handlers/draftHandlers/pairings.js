@@ -11,6 +11,7 @@ const log = require("../../utils/log.js");
 const Draft = require("../../models/draftClass.js");
 const ResultSlip = require("../../models/resultSlipClass.js");
 const draftResult = require("../../models/draftResult.js");
+const updateLeaderboard = require("../../handlers/leaderboardHandlers/updateLeaderboard.js");
 
 const NUMBER_OF_ROUNDS = 3;
 
@@ -18,7 +19,7 @@ const NUMBER_OF_ROUNDS = 3;
  * @param {Channel} channel
  * @param {Draft} draft
  */
-module.exports = async (channel, draft) => {
+module.exports = async (client, channel, draft) => {
 
   let completedMatches = [];
   let matchesLeft = draft.redTeam.length * NUMBER_OF_ROUNDS;
@@ -169,13 +170,16 @@ module.exports = async (channel, draft) => {
     });
     completedMatches.flat().forEach( (match) => {
       MatchResult.create({
-        draft_id: draftResult.draft_number,
         bluePlayer: match.bluePlayer.id,
         redPlayer: match.redPlayer.id,
         result: match.result,
-      })
+      }).then((mr) => {
+        return mr.setDraftResult(draftResult);
+      }).then( data => {
+        log("pairings.js", `Draft data successfully saved in database.`);
+        updateLeaderboard(client, channel.guild);
+      });
     });
-    log("pairings.js", `Data of draft successfully saved in database.`);
   }
   catch(error){
     log("pairings.js", error);

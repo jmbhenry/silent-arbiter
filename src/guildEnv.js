@@ -9,6 +9,7 @@ module.exports = (guildId) => {
       BOT_ADMIN_ROLE: "1137581592647307356",
       DRAFT_CHANNELS: ["1136003907596849173"],
       ROLE_CHANNEL : "1142301296678936659",
+      LEADERBOARD_CHANNEL : "1219851127835852840",
       OPT_IN_ROLES : [
         { id: "1133131119630495835", label: "Cube Drafters 🧊", style: ButtonStyle.Secondary, description: "Get notifications for Cube team drafts and 8-person rush when it's available on MTGO." },
         { id: "1133179596116860949", label: "Current Set Drafters 🃏", style: ButtonStyle.Danger, description: "Get notifications for 8-person rush of the current draft set." },
@@ -28,6 +29,7 @@ module.exports = (guildId) => {
         "1141412157964161064", //#scheduled-drafts
       ],
       ROLE_CHANNEL: "1142675186190127225",
+      LEADERBOARD_CHANNEL: "1219802601030422660",
       OPT_IN_ROLES: [
         { id: "940838664861282395", label: "Cube Drafters 🧊", style: ButtonStyle.Primary, description: "Get notifications for Cube team drafts and 8-person rush when it's available on MTGO." },
         { id: "1199206462073876501", label:"64 Player 🏆", style: ButtonStyle.Danger, description: "Get notifications for official 64 players drafts that are missing a few people to fire."  },

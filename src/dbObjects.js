@@ -10,6 +10,7 @@ const sequelize = new Sequelize('database', 'username', 'password', {
 const DraftResult = require('./models/draftResult.js')(sequelize, Sequelize.DataTypes);
 const MatchResult = require('./models/matchResult.js')(sequelize, Sequelize.DataTypes);
 
-MatchResult.belongsTo(DraftResult, { foreignKey: 'draft_id', as: 'draft' });
+MatchResult.belongsTo(DraftResult);
+DraftResult.hasMany(MatchResult);
 
 module.exports = { DraftResult, MatchResult };
