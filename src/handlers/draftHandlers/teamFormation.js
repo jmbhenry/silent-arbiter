@@ -56,9 +56,7 @@ module.exports = async (channel, draft) => {
       }
 
       if(draft.players.length == 1){
-        console.log(draft.players[0]);
         const p = draft.players.splice(0, 1).at(0);
-        console.log(p);
         picker.team.push(p);
         continue;
       }
@@ -130,7 +128,6 @@ module.exports = async (channel, draft) => {
       componentType: ComponentType.Button,
     });
     collector.on('collect', async (interaction) => {
-      console.log(`draft.players: ${draft.players}, draft.redTeam: ${draft.redTeam}, draft.blueTeam: ${draft.blueTeam}`);
       const memberPlayersIndex = draft.players.indexOf(interaction.member);
       const memberRedTeamIndex = draft.redTeam.indexOf(interaction.member);
       const memberBlueTeamIndex = draft.blueTeam.indexOf(interaction.member);
@@ -149,7 +146,6 @@ module.exports = async (channel, draft) => {
         });
         return;
       }
-      console.log(`Post splice : draft.players: ${draft.players}, draft.redTeam: ${draft.redTeam}, draft.blueTeam: ${draft.blueTeam}`);
       if(interaction.customId == "red"){
         if(draft.redTeam.length<draftSize/2)
           draft.redTeam.push(player);
@@ -174,7 +170,6 @@ module.exports = async (channel, draft) => {
         embeds: [getTeamEmbed(draft.redTeam, draft.blueTeam)],
         components: [buttonsRow]
       });
-      console.log(`Post assignement draft.players: ${draft.players}, draft.redTeam: ${draft.redTeam}, draft.blueTeam: ${draft.blueTeam}`);
       if(draft.players.length == 0) {
         const validateButton = new ButtonBuilder().setLabel("Validate teams").setCustomId("validate").setStyle(ButtonStyle.Primary);
         await endMessage.edit({

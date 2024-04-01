@@ -44,8 +44,15 @@ module.exports = async (client, guild) => {
     for (let i = 0; i<LEADERBOARD_MAX_SIZE; i++) {
         formattedLeaderboardText += `${i+1}.`;
         if(i<leaderboard.length) {
-            const playerName = await guild.members.fetch(leaderboard[i].id);
-            formattedLeaderboardText += ` ${playerName} - ${leaderboard[i].winrate().toFixed()}%`;
+            guild.members.fetch(leaderboard[i].id)
+            .then( playerName => {
+                formattedLeaderboardText += ` ${playerName} - ${leaderboard[i].winrate().toFixed()}%`;
+            })
+            .catch( error => {
+                log(`allTimeWinrate.js`, error);
+                log(`allTimeWinrate.js`, `User ${leaderboard[i].id} not found`);
+                formattedLeaderboardText += ` UNDEFINED - ${leaderboard[i].winrate().toFixed()}%`;
+            });
         }
         formattedLeaderboardText += `\n`;
     };

@@ -84,9 +84,6 @@ module.exports = {
         if(!otherPlayerId){
             recordReply+=`\nYour draft record is ${draftWins} wins, ${draftLosses} losses and ${draftDraws} draws.`;
         }
-        else {
-            recordReply+=`\nIn head to head drafts against ${otherPlayer.displayName}, you have ${draftWins} wins, ${draftLosses} losses and ${draftDraws} draws.`;
-        }
         await interaction.editReply({
             content: recordReply
         });
