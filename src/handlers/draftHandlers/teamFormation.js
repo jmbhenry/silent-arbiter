@@ -4,6 +4,7 @@ const {
   ActionRowBuilder,
   EmbedBuilder,
   Channel,
+  ComponentType
 } = require("discord.js");
 const shuffleArray = require("../../utils/shuffleArray.js");
 const formatPlayerList = require("../../utils/formatPlayerList.js");
@@ -35,7 +36,6 @@ module.exports = async (channel, draft) => {
     log("teamFormation.js", "Team formed randomly.")
   } else if (draft.teamFormation === "captains") {
     //Captains team formation
-
     const redCaptainIndex = Math.floor(Math.random() * draft.players.length);
     draft.redCaptain = draft.players.at(redCaptainIndex);
     draft.redTeam.push(draft.redCaptain);
@@ -53,6 +53,14 @@ module.exports = async (channel, draft) => {
         picker = { captain: draft.redCaptain, team: draft.redTeam };
       } else {
         picker = { captain: draft.blueCaptain, team: draft.blueTeam };
+      }
+
+      if(draft.players.length == 1){
+        console.log(draft.players[0]);
+        const p = draft.players.splice(0, 1).at(0);
+        console.log(p);
+        picker.team.push(p);
+        continue;
       }
 
       let rows = getPlayerButtonsRows(draft.players);
@@ -95,6 +103,92 @@ module.exports = async (channel, draft) => {
       }
     }
     log("teamFormation.js", "Team formed with captains.")
+  } else if (draft.teamFormation === "setTeams") {
+    const setTeamsButtons = [];
+    setTeamsButtons.push(new ButtonBuilder()
+      .setCustomId("red")
+      .setLabel("Red")
+      .setStyle(ButtonStyle.Danger));
+    setTeamsButtons.push(new ButtonBuilder()
+      .setCustomId("blue")
+      .setLabel("Blue")
+      .setStyle(ButtonStyle.Primary));
+    setTeamsButtons.push(new ButtonBuilder()
+      .setCustomId("leave")
+      .setLabel("Leave")
+      .setStyle(ButtonStyle.Secondary));
+  
+    const buttonsRow = new ActionRowBuilder().addComponents(setTeamsButtons);
+
+    let draftSize = draft.players.length;
+    await message.edit({
+      content: `Draft is formed with pre-determined teams. Click on the team you would like to join.`,
+      embeds: [getTeamEmbed(draft.redTeam, draft.blueTeam)],
+      components: [buttonsRow]
+    });
+    const collector = message.createMessageComponentCollector({
+      componentType: ComponentType.Button,
+    });
+    collector.on('collect', async (interaction) => {
+      console.log(`draft.players: ${draft.players}, draft.redTeam: ${draft.redTeam}, draft.blueTeam: ${draft.blueTeam}`);
+      const memberPlayersIndex = draft.players.indexOf(interaction.member);
+      const memberRedTeamIndex = draft.redTeam.indexOf(interaction.member);
+      const memberBlueTeamIndex = draft.blueTeam.indexOf(interaction.member);
+      let player;
+      if(memberPlayersIndex>-1)
+        player = draft.players.splice(memberPlayersIndex, 1).at(0);
+      else if (memberRedTeamIndex>-1)
+        player = draft.redTeam.splice(memberRedTeamIndex, 1).at(0);
+      else if (memberBlueTeamIndex>-1) {
+        player = draft.blueTeam.splice(memberBlueTeamIndex, 1).at(0);
+      }
+      else {
+        await interaction.reply({
+          content: "You are not in this draft!",
+          ephemeral: true,
+        });
+        return;
+      }
+      console.log(`Post splice : draft.players: ${draft.players}, draft.redTeam: ${draft.redTeam}, draft.blueTeam: ${draft.blueTeam}`);
+      if(interaction.customId == "red"){
+        if(draft.redTeam.length<draftSize/2)
+          draft.redTeam.push(player);
+        else {
+          draft.players.push(player);
+          await interaction.reply({content: "The red team is full", ephemeral: true,});
+          return;
+        }
+      } else if(interaction.customId == "blue"){
+        if(draft.blueTeam.length<draftSize/2)
+          draft.blueTeam.push(player);
+        else {
+          draft.players.push(player);
+          await interaction.reply({content: "The blue team is full", ephemeral: true,});
+          return;
+        }
+      } else if (interaction.customId == "leave") {
+        draft.players.push(player);
+      }
+      await interaction.update({
+        content: `Draft is formed with pre-determined teams. Click on the team you would like to join.`,
+        embeds: [getTeamEmbed(draft.redTeam, draft.blueTeam)],
+        components: [buttonsRow]
+      });
+      console.log(`Post assignement draft.players: ${draft.players}, draft.redTeam: ${draft.redTeam}, draft.blueTeam: ${draft.blueTeam}`);
+      if(draft.players.length == 0) {
+        const validateButton = new ButtonBuilder().setLabel("Validate teams").setCustomId("validate").setStyle(ButtonStyle.Primary);
+        await endMessage.edit({
+          content: `Everyone joined a team. Click on the button to validate them and display the pairings.`,
+          components: [new ActionRowBuilder().addComponents(validateButton)],
+        });
+      } else {
+        await endMessage.edit({content: "Click on the buttons to join a team", components: [] });
+      }
+    });
+    endMessage = await channel.send({ content: "Click on the buttons to join a team", components: [] });
+    await endMessage.awaitMessageComponent();
+    await endMessage.delete();
+    log("teamFormation.js", "Team formed with set teams.")
   }
 
   await message.edit({
@@ -102,7 +196,6 @@ module.exports = async (channel, draft) => {
     embeds: [getTeamEmbed(draft.redTeam, draft.blueTeam)],
     components: [],
   });
-
   draft.status = "pairings";
 
   return;

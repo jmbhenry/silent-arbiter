@@ -81,6 +81,10 @@ module.exports = {
         {
           name: "captains",
           value: "captains"
+        },
+        {
+          name: "setTeams",
+          value: "setTeams"
         }
       ]
     }
