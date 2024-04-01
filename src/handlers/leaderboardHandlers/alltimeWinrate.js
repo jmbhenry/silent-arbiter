@@ -1,11 +1,10 @@
-const {EmbedBuilder} = require("discord.js");
 const log = require("../../utils/log.js");
 const { Op, Sequelize } = require('sequelize');
 const { MatchResult, DraftResult} = require("../../dbObjects.js")
 const Player = require("../../models/PlayerClass.js")
 
 const LEADERBOARD_MAX_SIZE = 10;
-const MIN_MATCHES = 3;
+const MIN_MATCHES = 20;
 
 module.exports = async (client, guild) => {
     log("alltimeWinrate.js","Updating All Time Winrate Leaderboard.");
@@ -46,7 +45,7 @@ module.exports = async (client, guild) => {
         formattedLeaderboardText += `${i+1}.`;
         if(i<leaderboard.length) {
             const playerName = await guild.members.fetch(leaderboard[i].id);
-            formattedLeaderboardText += ` ${playerName} - ${leaderboard[i].winrate().toPrecision(2)}%`;
+            formattedLeaderboardText += ` ${playerName} - ${leaderboard[i].winrate().toFixed()}%`;
         }
         formattedLeaderboardText += `\n`;
     };
