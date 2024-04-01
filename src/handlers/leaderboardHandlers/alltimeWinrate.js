@@ -44,7 +44,7 @@ module.exports = async (client, guild) => {
     for (let i = 0; i<LEADERBOARD_MAX_SIZE; i++) {
         formattedLeaderboardText += `${i+1}.`;
         if(i<leaderboard.length) {
-            guild.members.fetch(leaderboard[i].id)
+            await guild.members.fetch(leaderboard[i].id)
             .then( playerName => {
                 formattedLeaderboardText += ` ${playerName} - ${leaderboard[i].winrate().toFixed()}%`;
             })
