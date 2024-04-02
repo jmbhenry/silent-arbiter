@@ -30,6 +30,21 @@ module.exports = async (client, channel, draft) => {
   draft.redTeam = shuffleArray(draft.redTeam);
   draft.blueTeam = shuffleArray(draft.blueTeam);
 
+  /* See https://gist.github.com/kkrypt0nn/a02506f3712ff2d1c8ca7c9e0aed7c06 for colored text in discord */
+  let seatingsText = " # Seatings\n```ansi\n";
+  for(let i=0; i<draft.redTeam.length; i++) {
+    seatingsText += `\u001b[0;31m${draft.redTeam[i].displayName}`;
+    seatingsText += `\u001b[0;37m ➡️ `;
+    seatingsText += `\u001b[0;34m${draft.blueTeam[i].displayName}`;
+    seatingsText += `\u001b[0;37m`;
+    seatingsText += i<draft.redTeam.length-1 ? " ➡️ " : " ↩️ ";
+  }
+  seatingsText += "```";
+  await channel.send({content: seatingsText});
+
+  draft.redTeam = shuffleArray(draft.redTeam);
+  draft.blueTeam = shuffleArray(draft.blueTeam);
+
   draft.link = await channel.send({content: ` # Pairings`});
 
   for (let round = 1; round <= NUMBER_OF_ROUNDS; round++) {
