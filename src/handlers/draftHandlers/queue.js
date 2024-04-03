@@ -8,7 +8,7 @@ const formatPlayerList = require("../../utils/formatPlayerList.js");
 const buttonPermissionCheck = require("../../utils/buttonPermissionCheck.js");
 const Draft = require("../../models/draftClass.js");
 const DRAFT_MIN_SIZE = 6;
-const DRAFT_QUEUE_MAX_SIZE = 8;
+const DRAFT_QUEUE_MAX_SIZE = 10;
 const log = require("../../utils/log.js");
 
 const queueButtons = [
