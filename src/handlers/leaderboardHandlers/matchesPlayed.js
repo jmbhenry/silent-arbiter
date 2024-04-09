@@ -34,8 +34,15 @@ module.exports = async (client, guild) => {
     for (let i = 0; i<LEADERBOARD_MAX_SIZE; i++) {
         formattedLeaderboardText += `${i+1}.`;
         if(i<leaderboard.length) {
-            const playerName = await guild.members.fetch(leaderboard[i][0]);
-            formattedLeaderboardText += ` ${playerName} - ${leaderboard[i][1]}`;
+            await guild.members.fetch(leaderboard[i][0])
+            .then( playerName => {
+                formattedLeaderboardText += ` ${playerName} - ${leaderboard[i][1]}`;
+            })
+            .catch( error => {
+                /* Handling users that have left the server. */
+                formattedLeaderboardText += `UNDEFINED - ${leaderboard[i][1]}`;
+                log(`matchesPlayed.js`, error);
+            });
         }
         formattedLeaderboardText += `\n`;
     };
