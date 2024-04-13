@@ -4,8 +4,6 @@ const { Op, Sequelize } = require('sequelize');
 const { MatchResult, DraftResult} = require("../../dbObjects.js")
 const Player = require("../../models/PlayerClass.js")
 
-const LEADERBOARD_MAX_SIZE = 10;
-
 module.exports = async (client, guild) => {
     log("matchesPlayed.js","Updating MatchesPlayed Leaderboard.");
 
@@ -30,26 +28,7 @@ module.exports = async (client, guild) => {
         return p2[1]-p1[1];
     });
 
-    let formattedLeaderboardText = "---\n";
-    for (let i = 0; i<LEADERBOARD_MAX_SIZE; i++) {
-        formattedLeaderboardText += `${i+1}.`;
-        if(i<leaderboard.length) {
-            await guild.members.fetch(leaderboard[i][0])
-            .then( playerName => {
-                formattedLeaderboardText += ` ${playerName} - ${leaderboard[i][1]}`;
-            })
-            .catch( error => {
-                /* Handling users that have left the server. */
-                formattedLeaderboardText += `UNDEFINED - ${leaderboard[i][1]}`;
-                log(`matchesPlayed.js`, error);
-            });
-        }
-        formattedLeaderboardText += `\n`;
-    };
-
-    return { 
-        name: "Matches played", 
-        value: formattedLeaderboardText,
-        inline: true,
-    };
+    return leaderboard.map( player => {
+        return {id: player[0], score: player[1], suffix: ""}
+    });
 }

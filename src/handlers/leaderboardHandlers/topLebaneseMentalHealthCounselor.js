@@ -32,16 +32,6 @@ module.exports = async (client, guild) => {
             match.result == "blue" ? eliPlayer.wins++ : eliPlayer.losses++;
         }
     });
-    let leaderboard = [eliPlayer];
-    let formattedLeaderboardText = "---\n";
-    for (let i = 0; i< LEADERBOARD_MAX_SIZE; i++) {
-        formattedLeaderboardText += `${i+1}.`;
-        if(i<leaderboard.length) {
-            const playerName = await guild.members.fetch(leaderboard[i].id);
-            formattedLeaderboardText += ` ${playerName} - ${leaderboard[i].winrate().toFixed()}%`;
-        }
-        formattedLeaderboardText += `\n`;
-    };
 
-    return { name:"Top Lebanese Mental Health Counselor", value: formattedLeaderboardText, inline:true};
+    return [{id: ELI, score: eliPlayer.winrate().toFixed(1), suffix:"%"}];
 }

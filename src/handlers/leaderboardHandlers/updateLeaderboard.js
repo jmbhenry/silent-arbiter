@@ -13,9 +13,9 @@ module.exports = async(client, guild) => {
 
     const leaderboardEmbed = new EmbedBuilder();
     const leaderboards = await Promise.all([
-            alltimeWinrate(client, guild),
-            matchesPlayed(client, guild),
-            topLebaneseMentalHealthCounselor(client, guild)
+            formatLeaderboard("All-time winrate", alltimeWinrate(client, guild), guild, 10),
+            formatLeaderboard("Matches played", matchesPlayed(client, guild), guild, 10),
+            formatLeaderboard("Top Eli", topLebaneseMentalHealthCounselor(client, guild), guild, 10),
         ]);
         leaderboards.forEach(board => {
         leaderboardEmbed.addFields(board);
@@ -38,4 +38,30 @@ module.exports = async(client, guild) => {
     }
     });
     process.exit;
+}
+
+async function formatLeaderboard(name, leaderboardPromise, guild, length) {
+    let entries = await leaderboardPromise;
+    let formattedLeaderboardText = "---\n";
+    let i = 1;
+    let j = 0;
+    while (i<=length) {
+        if(j >= entries.length) {
+            formattedLeaderboardText += `${i}.\n`;
+            i++;
+        } else {
+            let entry = entries[j];
+            await guild.members.fetch(entry.id)
+            .then( playerName => {
+                formattedLeaderboardText += `${i}. ${playerName} - ${entry.score}${entry.suffix}\n`;
+                i++;
+            })
+            .catch( error => {
+                /* Handling users that have left the server. */
+                log(`updateLeaderboard.js`, error);
+            });
+        }
+        j++;
+    };
+    return {name: name, value: formattedLeaderboardText, inline: true};
 }
