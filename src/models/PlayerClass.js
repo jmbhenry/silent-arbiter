@@ -12,4 +12,8 @@ module.exports = class Player {
     winrate() {
         return 100*this.wins/(this.wins+this.losses)
     }
+
+    numberOfMatches() {
+        return this.wins+this.losses;
+    }
 }

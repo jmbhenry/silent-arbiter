@@ -3,16 +3,18 @@ const { Op, Sequelize } = require('sequelize');
 const { MatchResult, DraftResult} = require("../../dbObjects.js")
 const Player = require("../../models/PlayerClass.js")
 
-const MIN_MATCHES = 20;
-
-module.exports = async (client, guild) => {
-    log("alltimeWinrate.js","Updating All Time Winrate Leaderboard.");
+module.exports = async (client, guild, minMatches = 0, startDate = new Date(0), endDate = new Date(4868827482000)) => {
+    log("2024Winrate.js","Updating All Time Winrate Leaderboard.");
 
     let matches = await MatchResult.findAll({ 
         where: {
             [Op.and] : {
                 [Op.not]: {result: "unplayed"},
                 '$DraftResult.guild_id$': guild.id,
+                createdAt: {
+                    [Op.lt]: endDate,
+                    [Op.gt]: startDate,
+                  }
             }
         },
         include: DraftResult
@@ -33,9 +35,8 @@ module.exports = async (client, guild) => {
     });
 
     let leaderboard = Array.from(map.values()).filter(player => {
-            return player.wins+player.losses>=MIN_MATCHES;
+        return player.wins+player.losses>=minMatches;
     });
-
     leaderboard.sort((p1, p2) => {
         return p2.winrate()-p1.winrate();
     });

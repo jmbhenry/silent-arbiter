@@ -1,9 +1,10 @@
 const guildEnv = require("../../guildEnv.js");
 const log = require("../../utils/log.js");
 const { EmbedBuilder } = require("@discordjs/builders");
-const alltimeWinrate = require("../../handlers/leaderboardHandlers/alltimeWinrate.js");
 const matchesPlayed = require("../../handlers/leaderboardHandlers/matchesPlayed.js");
-const topLebaneseMentalHealthCounselor = require("../../handlers/leaderboardHandlers/topLebaneseMentalHealthCounselor.js");
+const rollingWinrate = require("./rollingWinrate.js");
+const winrate = require("../../handlers/leaderboardHandlers/winrate.js");
+
 
 
 module.exports = async(client, guild) => {
@@ -13,9 +14,10 @@ module.exports = async(client, guild) => {
 
     const leaderboardEmbed = new EmbedBuilder();
     const leaderboards = await Promise.all([
-            formatLeaderboard("All-time winrate", alltimeWinrate(client, guild), guild, 10),
+            formatLeaderboard("Winrate in April", winrate(client, guild, 20, new Date(1711944000000), new Date(1714535999000)), guild, 10, "min 20 matches"),
+            formatLeaderboard("Winrate in 2024", winrate(client, guild, 50, new Date(1704085200000), new Date(1735707599000)), guild, 10, "min 50 matches"),
+            formatLeaderboard("Winrate over last 50 matches", rollingWinrate(client, guild, 50), guild, 10, "min 50 matches"),
             formatLeaderboard("Matches played", matchesPlayed(client, guild), guild, 10),
-            formatLeaderboard("Top Eli", topLebaneseMentalHealthCounselor(client, guild), guild, 10),
         ]);
         leaderboards.forEach(board => {
         leaderboardEmbed.addFields(board);
@@ -40,9 +42,9 @@ module.exports = async(client, guild) => {
     process.exit;
 }
 
-async function formatLeaderboard(name, leaderboardPromise, guild, length) {
+async function formatLeaderboard(name, leaderboardPromise, guild, length, comment) {
     let entries = await leaderboardPromise;
-    let formattedLeaderboardText = "---\n";
+    let formattedLeaderboardText=`${comment ?? "-"}\n`;
     let i = 1;
     let j = 0;
     while (i<=length) {
@@ -63,5 +65,6 @@ async function formatLeaderboard(name, leaderboardPromise, guild, length) {
         }
         j++;
     };
+
     return {name: name, value: formattedLeaderboardText, inline: true};
 }
