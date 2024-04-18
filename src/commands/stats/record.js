@@ -11,7 +11,8 @@ module.exports = {
     callback: async(client, interaction) => {
         log("record.js", `Record command called by ${interaction.member.displayName} in ${interaction.channel.name}`);
         const otherPlayerId = interaction.options.get("head-to-head") ? interaction.options.get("head-to-head").value : null;
-        const public = interaction.options.get("public");
+        const public = interaction.options.get("public")?.value;
+        console.log(public);
         await interaction.deferReply({ ephemeral: !public});
         
         let matches = await MatchResult.findAll({
