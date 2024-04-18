@@ -12,7 +12,6 @@ module.exports = {
         log("record.js", `Record command called by ${interaction.member.displayName} in ${interaction.channel.name}`);
         const otherPlayerId = interaction.options.get("head-to-head") ? interaction.options.get("head-to-head").value : null;
         const public = interaction.options.get("public")?.value;
-        console.log(public);
         await interaction.deferReply({ ephemeral: !public});
         
         let matches = await MatchResult.findAll({
@@ -24,6 +23,10 @@ module.exports = {
             },
             include: DraftResult
         });
+        /* Sort from most recent to oldest for rolling winrate calculation */
+        matches.sort((m1, m2) => {
+            return m2.createdAt - m1.createdAt;
+        });    
         /* If head to head */
         if(otherPlayerId) {
             matches = matches.filter(match => {
@@ -31,29 +34,74 @@ module.exports = {
             });
         };
         /* Calculate match winrate */
-        let matchWins = 0;
-        let matchLosses = 0;
+        let matchWinsAllTime = 0;
+        let matchLossesAllTime = 0;
+        let matchWinsYearly = 0;
+        let matchLossesYearly = 0;
+        const YEARLY_START_DATE = new Date(1704085200000);
+        const YEARLY_END_DATE = new Date(1735707599000);
+        let matchWinsMontly = 0;
+        let matchLossesMonthly = 0;
+        const MONTHLY_START_DATE = new Date(1711944000000);
+        const MONTHLY_END_DATE = new Date(1714535999000);
+        let rollingWins = 0;
+        let rollingLosses = 0;
+        const ROLLING_MAX = 50;
         matches.forEach(match => {
             if(match.redPlayer == interaction.member.id) {
-                if(match.result == "red")
-                    matchWins++;
-                else if (match.result == "blue")
-                    matchLosses++;
+                if(match.result == "red") {
+                    if(match.createdAt > YEARLY_START_DATE && match.createdAt < YEARLY_END_DATE)
+                        matchWinsYearly++;
+                    if(match.createdAt > MONTHLY_START_DATE && match.createdAt < MONTHLY_END_DATE)
+                        matchWinsMontly++;
+                    if(rollingWins+rollingLosses<ROLLING_MAX)
+                        rollingWins++;
+                    matchWinsAllTime++;
+                }
+                else if (match.result == "blue") {
+                    if(match.createdAt > YEARLY_START_DATE && match.createdAt < YEARLY_END_DATE)
+                        matchLossesYearly++;
+                    if(match.createdAt > MONTHLY_START_DATE && match.createdAt < MONTHLY_END_DATE)
+                        matchLossesMonthly++;
+                    if(rollingWins+rollingLosses<ROLLING_MAX)
+                        rollingLosses++;
+                    matchLossesAllTime++;
+                }
             }
             else if(match.bluePlayer == interaction.member.id) {
-                if(match.result == "blue")
-                    matchWins++;
-                else if (match.result == "red")
-                    matchLosses++;
+                if(match.result == "blue") {
+                    if(match.createdAt > YEARLY_START_DATE && match.createdAt < YEARLY_END_DATE)
+                        matchWinsYearly++;
+                    if(match.createdAt > MONTHLY_START_DATE && match.createdAt < MONTHLY_END_DATE)
+                        matchWinsMontly++;
+                    if(rollingWins+rollingLosses<ROLLING_MAX)
+                        rollingWins++;
+                    matchWinsAllTime++;
+                }
+                else if (match.result == "red") {
+                    if(match.createdAt > YEARLY_START_DATE && match.createdAt < YEARLY_END_DATE)
+                        matchLossesYearly++;
+                    if(match.createdAt > MONTHLY_START_DATE && match.createdAt < MONTHLY_END_DATE)
+                        matchLossesMonthly++;
+                    if(rollingWins+rollingLosses<ROLLING_MAX)
+                        rollingLosses++;
+                    matchLossesAllTime++;
+                }
             }
         });
         const otherPlayer = await interaction.guild.members.fetch(otherPlayerId);
         let recordReply;
-        const winrate = ((matchWins/(matchWins+matchLosses))*100).toFixed();
+        const winrateAllTime = ((matchWinsAllTime/(matchWinsAllTime+matchLossesAllTime))*100).toFixed();
+        const winrateYearly = ((matchWinsYearly/(matchWinsYearly+matchLossesYearly))*100).toFixed();
+        const winrateMonthly = ((matchWinsMontly/(matchWinsMontly+matchLossesMonthly))*100).toFixed();
+        const winrateRolling = ((rollingWins/(rollingWins+rollingLosses))*100).toFixed();
         if(!otherPlayerId){
-            recordReply = `Your match record is ${matchWins} wins and ${matchLosses} losses. Winrate: ${winrate}%.`;
+            recordReply = `Your all-time match record is ${matchWinsAllTime} wins and ${matchLossesAllTime} losses. Winrate: ${winrateAllTime}%.`;
+            recordReply += `\nYour 2024 match record is ${matchWinsYearly} wins and ${matchLossesYearly} losses. Winrate: ${winrateYearly}%.`;
+            recordReply += `\nYour april match record is ${matchWinsMontly} wins and ${matchLossesMonthly} losses. Winrate: ${winrateMonthly}%.`;
+            recordReply += `\nYour rolling last 50 matches record is ${rollingWins} wins and ${rollingLosses} losses. Winrate: ${winrateRolling}%.`;
         } else {
-            recordReply = `In head to head matches against ${otherPlayer.displayName}, you have ${matchWins} wins to ${matchLosses} losses. Winrate: ${winrate}%.`;
+            recordReply = `In head to head matches against ${otherPlayer.displayName}, you have ${matchWinsAllTime} wins to ${matchLossesAllTime} losses. Winrate: ${winrateAllTime}%.`;
         }
         /* Calculate draft winrate */
         let matchesGroupedByDraft = await MatchResult.findAll({
