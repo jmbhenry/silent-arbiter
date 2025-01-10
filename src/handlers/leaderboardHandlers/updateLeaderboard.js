@@ -14,8 +14,8 @@ module.exports = async(client, guild) => {
 
     const leaderboardEmbed = new EmbedBuilder();
     const leaderboards = await Promise.all([
-            formatLeaderboard("Winrate in April", winrate(client, guild, 20, new Date(1711944000000), new Date(1714535999000)), guild, 10, "min 20 matches"),
             formatLeaderboard("Winrate in 2024", winrate(client, guild, 50, new Date(1704085200000), new Date(1735707599000)), guild, 10, "min 50 matches"),
+            formatLeaderboard("Winrate in 2025", winrate(client, guild, 50, new Date(1735707600000), new Date(1767243599000)), guild, 10, "min 50 matches"),
             formatLeaderboard("Winrate over last 50 matches", rollingWinrate(client, guild, 50), guild, 10, "min 50 matches"),
             formatLeaderboard("Matches played", matchesPlayed(client, guild), guild, 10),
         ]);
